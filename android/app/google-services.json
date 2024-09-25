@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "440430481154",
+    "project_id": "supercalculadora-52c51",
+    "storage_bucket": "supercalculadora-52c51.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:440430481154:android:411ac6cb5512a564dc7c1b",
+        "android_client_info": {
+          "package_name": "com.example.supcalculadora"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAte4ciuWdd-2g4VGuYvj8z4PsYwYX3GfU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

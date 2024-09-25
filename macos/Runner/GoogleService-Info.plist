@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyAV81n1OG76YPK8aOxL55wuN30OvZO1CMY</string>
+	<key>GCM_SENDER_ID</key>
+	<string>440430481154</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.supcalculadora.RunnerTests</string>
+	<key>PROJECT_ID</key>
+	<string>supercalculadora-52c51</string>
+	<key>STORAGE_BUCKET</key>
+	<string>supercalculadora-52c51.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:440430481154:ios:ca3e32568d14371bdc7c1b</string>
+</dict>
+</plist>
