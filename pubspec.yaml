@@ -41,8 +41,10 @@ dependencies:
   firebase_auth: ^4.15.0
   avatar_glow: ^3.0.1
   permission_handler: ^11.1.0
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
+  cloud_firestore: ^4.3.0
   flutter_test:
     sdk: flutter
 

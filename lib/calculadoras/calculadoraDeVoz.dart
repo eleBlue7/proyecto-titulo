@@ -2,6 +2,7 @@ import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';  // Importa Firebase Firestore
 
 void requestPermissions() async {
   var status = await Permission.microphone.request();
@@ -17,6 +18,17 @@ class Product {
   double price;
 
   Product(this.name, this.price);
+
+  // Para guardar en Firebase Firestore
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'price': price,
+      };
+
+  // Para recuperar desde Firebase Firestore
+  factory Product.fromJson(Map<String, dynamic> json) {
+    return Product(json['name'], json['price']);
+  }
 }
 
 class CalDeVoz extends StatefulWidget {
@@ -31,7 +43,7 @@ class _CalDeVozState extends State<CalDeVoz> {
 
   List<Product> products = []; // Lista de productos
 
-  var text = "Apreta el botón para comenzar a decir los productos y precios!";
+  var text = "Apreta el botón para comenzar a decir los precios!";
   var isListening = false;
   bool isSpeechProcessed = false;
 
@@ -83,6 +95,28 @@ class _CalDeVozState extends State<CalDeVoz> {
         .replaceAll('quince', '15')
         .replaceAll('coma', '.')
         .replaceAll('punto', '.');
+  }
+
+  // Función para guardar productos en Firebase Firestore
+  Future<void> saveProductsToFirestore() async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    try {
+      CollectionReference productsCollection = firestore.collection('products_history');
+      await productsCollection.add({
+        'timestamp': FieldValue.serverTimestamp(),
+        'total': getTotal(),
+        'products': products.map((product) => product.toJson()).toList(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Productos guardados en Firebase')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al guardar productos: $e')),
+      );
+    }
   }
 
   @override
@@ -157,6 +191,12 @@ class _CalDeVozState extends State<CalDeVoz> {
               color: Colors.black,
             ),
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.save),
+              onPressed: saveProductsToFirestore, // Llama a la función para guardar en Firebase
+            )
+          ],
         ),
         body: SingleChildScrollView(
           reverse: true,
@@ -178,11 +218,18 @@ class _CalDeVozState extends State<CalDeVoz> {
                       fontWeight: FontWeight.w600),
                 ),
                 Text(
-                  'Total a pagar: ${getTotal().toStringAsFixed(0)}',
+                  'Total: ${getTotal().toStringAsFixed(2)}',
                   style: TextStyle(
                     fontSize: 24,
                     color: isListening ? Colors.black54 : Colors.black,
                     fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Text(
+                  'Productos y Precios:',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 Expanded(
@@ -198,33 +245,9 @@ class _CalDeVozState extends State<CalDeVoz> {
                             IconButton(
                               icon: const Icon(Icons.close),
                               onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text("Confirmar eliminación"),
-                                      content: const Text(
-                                          "¿Deseas eliminar este producto?"),
-                                      actions: [
-                                        TextButton(
-                                          child: const Text("Cancelar"),
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                        ),
-                                        TextButton(
-                                          child: const Text("Eliminar"),
-                                          onPressed: () {
-                                            setState(() {
-                                              products.removeAt(index);
-                                            });
-                                            Navigator.of(context).pop();
-                                          },
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
+                                setState(() {
+                                  products.removeAt(index);
+                                });
                               },
                             ),
                           ],
