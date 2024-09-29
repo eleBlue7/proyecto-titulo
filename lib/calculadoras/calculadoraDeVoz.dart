@@ -17,7 +17,7 @@ void requestPermissions() async {
 
 class Product {
   String nombre;
-  double precio;
+  int precio;
 
   Product(this.nombre, this.precio);
 
@@ -55,7 +55,7 @@ class _CalDeVozState extends State<CalDeVoz> {
     requestPermissions();
   }
 
-  double getTotal() {
+  int getTotal() {
     if (products.isEmpty) {
       return 0; // Si la lista está vacía, devuelve 0
     } else {
@@ -163,9 +163,9 @@ class _CalDeVozState extends State<CalDeVoz> {
                               String processedPrice =
                                   processRecognizedWords(priceWord);
 
-                              double productPrice = 0;
+                              int productPrice = 0;
                               try {
-                                productPrice = double.parse(processedPrice);
+                                productPrice = int.parse(processedPrice);
                               } catch (e) {
                                 text =
                                     "Por favor, diga un producto y su precio válido.";
@@ -244,7 +244,7 @@ class _CalDeVozState extends State<CalDeVoz> {
                       fontWeight: FontWeight.w600),
                 ),
                 Text(
-                  'Total: ${getTotal().toStringAsFixed(2)}',
+                  'Total: ${getTotal().toString()}',
                   style: TextStyle(
                     fontSize: 24,
                     color: isListening ? Colors.black54 : Colors.black,
@@ -260,7 +260,7 @@ class _CalDeVozState extends State<CalDeVoz> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(products[index].nombre),
-                            Text(products[index].precio.toStringAsFixed(2)),
+                            Text(products[index].precio.toString()),
                             IconButton(
                               icon: const Icon(Icons.close),
                               onPressed: () {
