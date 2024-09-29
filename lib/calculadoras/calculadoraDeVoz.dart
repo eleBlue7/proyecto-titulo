@@ -1,8 +1,10 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';  // Importa Firebase Firestore
+import 'package:cloud_firestore/cloud_firestore.dart'; // Importa Firebase Firestore
 
 void requestPermissions() async {
   var status = await Permission.microphone.request();
@@ -14,20 +16,20 @@ void requestPermissions() async {
 }
 
 class Product {
-  String name;
-  double price;
+  String nombre;
+  double precio;
 
-  Product(this.name, this.price);
+  Product(this.nombre, this.precio);
 
   // Para guardar en Firebase Firestore
   Map<String, dynamic> toJson() => {
-        'name': name,
-        'price': price,
+        'Nombre del producto': nombre,
+        'Precio': precio,
       };
 
   // Para recuperar desde Firebase Firestore
   factory Product.fromJson(Map<String, dynamic> json) {
-    return Product(json['name'], json['price']);
+    return Product(json['Nombre del producto'], json['Precio']);
   }
 }
 
@@ -57,7 +59,7 @@ class _CalDeVozState extends State<CalDeVoz> {
     if (products.isEmpty) {
       return 0; // Si la lista está vacía, devuelve 0
     } else {
-      return products.map((product) => product.price).reduce((a, b) => a + b);
+      return products.map((product) => product.precio).reduce((a, b) => a + b);
     }
   }
 
@@ -70,7 +72,8 @@ class _CalDeVozState extends State<CalDeVoz> {
   }
 
   String processRecognizedWords(String recognizedWords) {
-    return recognizedWords.toLowerCase()
+    return recognizedWords
+        .toLowerCase()
         .replaceAll(',', '')
         .replaceAll('por', '*')
         .replaceAll('luca', '1000')
@@ -102,11 +105,13 @@ class _CalDeVozState extends State<CalDeVoz> {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     try {
-      CollectionReference productsCollection = firestore.collection('products_history');
+      CollectionReference productsCollection =
+          firestore.collection('Historiales');
       await productsCollection.add({
-        'timestamp': FieldValue.serverTimestamp(),
-        'total': getTotal(),
-        'products': products.map((product) => product.toJson()).toList(),
+        'Hora de guardado': FieldValue.serverTimestamp(),
+        'Total': getTotal(),
+        'Productos guardados':
+            products.map((product) => product.toJson()).toList(),
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -142,20 +147,40 @@ class _CalDeVozState extends State<CalDeVoz> {
                             String recognizedWords =
                                 result.recognizedWords.toLowerCase();
 
-                            // Procesar las palabras y convertirlas a números
-                            String processedWords = processRecognizedWords(recognizedWords);
+                            // Dividir las palabras reconocidas en una lista
+                            List<String> words = recognizedWords.split(" ");
 
-                            double productPrice = 0;
-                            try {
-                              productPrice = double.parse(processedWords);
-                            } catch (e) {
-                              text = "Por favor, diga un producto y su precio válido.";
-                            }
+                            if (words.length == 2) {
+                              // Asegúrate de tener al menos un nombre y un precio
+                              String productName = words
+                                  .sublist(0, words.length - 1)
+                                  .join(
+                                      " "); // El nombre son todas las palabras excepto la última
+                              String priceWord =
+                                  words.last; // La última palabra es el precio
 
-                            if (productPrice > 0) {
-                              products.add(Product("Producto", productPrice));
+                              // Procesar las palabras y convertirlas a números
+                              String processedPrice =
+                                  processRecognizedWords(priceWord);
+
+                              double productPrice = 0;
+                              try {
+                                productPrice = double.parse(processedPrice);
+                              } catch (e) {
+                                text =
+                                    "Por favor, diga un producto y su precio válido.";
+                              }
+
+                              if (productPrice > 0) {
+                                products.add(Product(productName,
+                                    productPrice)); // Usa el nombre y el precio reconocidos
+                              } else {
+                                text =
+                                    "Por favor, diga un producto y su precio válido.";
+                              }
                             } else {
-                              text = "Por favor, diga un producto y su precio válido.";
+                              text =
+                                  "Por favor, diga el nombre del producto y el precio.";
                             }
 
                             // Detener la escucha automáticamente después de procesar
@@ -194,7 +219,8 @@ class _CalDeVozState extends State<CalDeVoz> {
           actions: [
             IconButton(
               icon: const Icon(Icons.save),
-              onPressed: saveProductsToFirestore, // Llama a la función para guardar en Firebase
+              onPressed:
+                  saveProductsToFirestore, // Llama a la función para guardar en Firebase
             )
           ],
         ),
@@ -225,13 +251,6 @@ class _CalDeVozState extends State<CalDeVoz> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const Text(
-                  'Productos y Precios:',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
                 Expanded(
                   child: ListView.builder(
                     itemCount: products.length,
@@ -240,8 +259,8 @@ class _CalDeVozState extends State<CalDeVoz> {
                         title: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(products[index].name),
-                            Text(products[index].price.toStringAsFixed(2)),
+                            Text(products[index].nombre),
+                            Text(products[index].precio.toStringAsFixed(2)),
                             IconButton(
                               icon: const Icon(Icons.close),
                               onPressed: () {
