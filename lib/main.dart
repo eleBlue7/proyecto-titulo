@@ -23,7 +23,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
+
       home: ChequeoAutentificacion(), // Usa ChequeoAutentuficacion para verificar el estado de autenticación
+
+     
+
     );
   }
 }
