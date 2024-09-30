@@ -1,4 +1,3 @@
-// ignore_for_file: empty_constructor_bodies, use_build_context_synchronously
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:supcalculadora/welcome.dart';
@@ -17,8 +16,11 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
 
+  bool _obscureText = true; // Variable donde escondemos la contraseña
   String _email = "";
   String _password = "";
+  String _errorMessage = ""; // Variable para el mensaje de error
+
   void _handleLogin() async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
@@ -27,94 +29,124 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       print("User Logged in: ${userCredential.user!.email}");
       Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const Welcome(),
-          ));
+        context,
+        MaterialPageRoute(
+          builder: (context) => const Welcome(),
+        ),
+      );
     } catch (e) {
-      print("Error durante inicio de sesion: $e");
+      setState(() {
+        _errorMessage = "Error: No se pudo iniciar sesión. Verifica tu correo y contraseña.";
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_errorMessage),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("AddUp Fast"),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formkey,
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: "Email",
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Porfavor, Ingrese su email correctamente";
-                    }
-                    return null;
-                  },
-                  onChanged: (value) {
-                    setState(() {
-                      _email = value;
-                    });
-                  },
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: _passController,
-                  obscureText: true,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: "Contraseña",
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Porfavor, Ingrese su contrseña correctamente";
-                    }
-                    return null;
-                  },
-                  onChanged: (value) {
-                    setState(() {
-                      _password = value;
-                    });
-                  },
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formkey.currentState!.validate()) {
-                      _handleLogin();
-                    }
-                  },
-                  child: const Text("Iniciar Sesión"),
-                ),
-                const SizedBox(height: 10),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context, 
-                      MaterialPageRoute(
-                        builder: (context) => const SignUpScreen(),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return ConstrainedBox(
+              constraints: BoxConstraints(
+                minWidth: constraints.maxWidth * 0.7,
+                maxWidth: constraints.maxWidth,
+              ),
+              child: Form(
+                key: _formkey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.email),
+                        border: OutlineInputBorder(),
+                        labelText: "Email",
                       ),
-                    );
-                  },
-                  child: const Text("No tienes una cuenta? Registrate!"),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Por favor, ingrese su email correctamente";
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        setState(() {
+                          _email = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: _passController,
+                      obscureText: _obscureText, 
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.password),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureText ? Icons.visibility_off : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureText = !_obscureText;
+                            });
+                          },
+                        ),
+                        border: const OutlineInputBorder(),
+                        labelText: "Contraseña",
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Por favor, ingrese su contraseña correctamente";
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        setState(() {
+                          _password = value;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_formkey.currentState!.validate()) {
+                          _handleLogin();
+                        }
+                      },
+                      child: const Text("Iniciar Sesión"),
+                    ),
+                    const SizedBox(height: 10),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SignUpScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text("¿No tienes una cuenta? ¡Regístrate!"),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
   }
 }
-
