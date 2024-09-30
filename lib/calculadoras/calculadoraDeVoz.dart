@@ -102,27 +102,47 @@ class _CalDeVozState extends State<CalDeVoz> {
 
   // Función para guardar productos en Firebase Firestore
   Future<void> saveProductsToFirestore() async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-    try {
-      CollectionReference productsCollection =
-          firestore.collection('Historiales');
-      await productsCollection.add({
-        'Hora de guardado': FieldValue.serverTimestamp(),
-        'Total': getTotal(),
-        'Productos guardados':
-            products.map((product) => product.toJson()).toList(),
-      });
+  try {
+    // Referencia al documento donde guardas el número de historial
+    DocumentReference counterDoc = firestore.collection('Configuración').doc('contadorHistorial');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Productos guardados en Firebase')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar productos: $e')),
-      );
+    // Leer el número de historial actual
+    DocumentSnapshot snapshot = await counterDoc.get();
+
+    int historialNumero = 1; // Valor por defecto si no existe el contador
+
+    if (snapshot.exists && snapshot.data() != null) {
+      historialNumero = snapshot['siguientehistorial'] ?? 1; // Lee el último número de historial
     }
+
+    // Crear el nuevo ID para el historial en la colección "Historiales"
+    String customId = "Historial $historialNumero";
+
+    // Guardar el nuevo historial en la colección "Historiales"
+    CollectionReference productsCollection = firestore.collection('Historiales');
+    await productsCollection.doc(customId).set({
+      'Hora de guardado': FieldValue.serverTimestamp(),
+      'Total': getTotal(),
+      'Productos guardados': products.map((product) => product.toJson()).toList(),
+    });
+
+    // Incrementar el número del historial y actualizar el valor en Firestore
+    await counterDoc.set({
+      'siguientehistorial': historialNumero + 1, // Incrementar el contador
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Productos guardados en Firebase')),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error al guardar productos: $e')),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
