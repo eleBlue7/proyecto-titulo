@@ -1,9 +1,10 @@
-// ignore_for_file: use_build_context_synchronously
 
 import 'package:avatar_glow/avatar_glow.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:permission_handler/permission_handler.dart';
+// ignore: depend_on_referenced_packages
 import 'package:cloud_firestore/cloud_firestore.dart'; // Importa Firebase Firestore
 
 void requestPermissions() async {
@@ -101,10 +102,14 @@ class _CalDeVozState extends State<CalDeVoz> {
   }
 
   // Función para guardar productos en Firebase Firestore
-  Future<void> saveProductsToFirestore() async {
+Future<void> saveProductsToFirestore() async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   try {
+    // Obtener el usuario autenticado y su nombre
+    User? user = FirebaseAuth.instance.currentUser;
+    String userName = user?.displayName ?? 'UsuarioDesconocido'; // Si no hay nombre, usar un valor por defecto
+
     // Referencia al documento donde guardas el número de historial
     DocumentReference counterDoc = firestore.collection('Configuración').doc('contadorHistorial');
 
@@ -118,11 +123,12 @@ class _CalDeVozState extends State<CalDeVoz> {
     }
 
     // Crear el nuevo ID para el historial en la colección "Historiales"
-    String customId = "Historial $historialNumero";
+    String customId = "$userName-Historial $historialNumero";
 
     // Guardar el nuevo historial en la colección "Historiales"
     CollectionReference productsCollection = firestore.collection('Historiales');
     await productsCollection.doc(customId).set({
+      'Usuario': userName, // Guardar el nombre del usuario
       'Hora de guardado': FieldValue.serverTimestamp(),
       'Total': getTotal(),
       'Productos guardados': products.map((product) => product.toJson()).toList(),
@@ -142,7 +148,6 @@ class _CalDeVozState extends State<CalDeVoz> {
     );
   }
 }
-
 
   @override
   Widget build(BuildContext context) {

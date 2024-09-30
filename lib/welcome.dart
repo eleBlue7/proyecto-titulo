@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:supcalculadora/Perfil/perfil.dart';
-import 'package:supcalculadora/calculadoras/calculadoraDeVoz.dart';
+import 'package:supcalculadora/calculadoras/calculadora_voz.dart';
 // Asegúrate de importar la CalculadoraM también
 
 import 'package:supcalculadora/calculadoras/calculadora_manual.dart';

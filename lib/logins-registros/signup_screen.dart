@@ -1,6 +1,8 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:supcalculadora/welcome.dart';
+import 'package:supcalculadora/logins-registros/login_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -31,7 +33,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       // Actualizar perfil del usuario con el nombre ingresado
       await userCredential.user!.updateDisplayName(_name);
 
-      print("User Registered: ${userCredential.user!.email}");
 
       // Muestra un diálogo o mensaje para indicar que el registro fue exitoso.
       showDialog(
@@ -45,7 +46,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 onPressed: () {
                   Navigator.of(context).pop(); // Cerrar el diálogo
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const Welcome()),
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
                   );
                 },
                 child: const Text("OK"),
@@ -55,7 +56,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         },
       );
     } catch (e) {
-      print("ERROR! Algo falló durante el registro: $e");
       // Agrega aquí el código para manejar errores durante el registro.
     }
   }
