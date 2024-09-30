@@ -1,0 +1,54 @@
+[33mcommit 91c34d6202fe27c86bb7e97e6264b91bc654fc82[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Merge: 1641e7d ce3767e
+Author: FelipeDiaz <felipe.diaz126@inacapmail.cl>
+Date:   Mon Sep 30 16:11:18 2024 -0300
+
+    Merge branch 'main' of github.com:eleBlue7/proyecto-titulo
+
+[33mcommit 1641e7dc408d8b69a5a95eb21707ebf5f4315980[m
+Author: FelipeDiaz <felipe.diaz126@inacapmail.cl>
+Date:   Mon Sep 30 16:11:06 2024 -0300
+
+    Cambios en calculadora_manual.dart y pubspec.yaml
+
+[33mcommit ce3767ec2678db333dd8b8415c645e834c03f191[m
+Author: db3nja <benjalop24@gmail.com>
+Date:   Mon Sep 30 15:31:41 2024 -0300
+
+    Se añaden prefix y subfix al inicio sesion, se agrega el nombre en el registro de usuario, se crea el apartado de perfil
+
+[33mcommit cfc34529403a6e69f1b5b856725eeb9f4061bb4a[m
+Author: FelipeDiaz <felipe.diaz126@inacapmail.cl>
+Date:   Mon Sep 30 09:36:39 2024 -0300
+
+    Actualice pubspec.lock con nuevas dependencias
+
+[33mcommit b1495b64e57fd59839f130e6c72cb24f5370922f[m
+Author: eleBlue <eleuterioxd@gmail.com>
+Date:   Sun Sep 29 22:25:59 2024 -0300
+
+    6-Corrección nombres y atributos del firebase
+
+[33mcommit 1cc21afdd56d6dc96b769bde3ebf8fc3826916a5[m
+Author: eleBlue <eleuterioxd@gmail.com>
+Date:   Sun Sep 29 19:45:31 2024 -0300
+
+    5-Cambiamos los decimales a enteros en toda la calculadora
+
+[33mcommit 0037692e71b1d67db4eb60d93861c31c37a86449[m
+Author: eleBlue <eleuterioxd@gmail.com>
+Date:   Sun Sep 29 19:34:09 2024 -0300
+
+    4-cambios nombres firestore y funcion con producto/precio via voz
+
+[33mcommit dca5953c522ff18fe79e4f26aed818c2c74dec20[m
+Author: eleBlue <eleuterioxd@gmail.com>
+Date:   Sat Sep 28 17:27:34 2024 -0300
+
+    3- conexion firebase de productos hecha
+
+[33mcommit b6b7224e88170650480162f247491e57fc32d24c[m
+Author: eleBlue <eleuterioxd@gmail.com>
+Date:   Wed Sep 25 14:18:47 2024 -0300
+
+    primer commit

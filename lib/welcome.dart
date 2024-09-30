@@ -1,7 +1,10 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:supcalculadora/Perfil/perfil.dart';
-import 'package:supcalculadora/calculadoras/calculadora_manual.dart';
-import 'package:supcalculadora/calculadoras/calculadoraDeVoz.dart'; // Asegúrate de importar la pantalla del perfil
+import 'package:supcalculadora/calculadora/calculadoraDeVoz.dart';
+// Asegúrate de importar la pantalla del perfil
+
 
 class Welcome extends StatefulWidget {
   const Welcome({super.key});
@@ -10,76 +13,34 @@ class Welcome extends StatefulWidget {
   _WelcomeState createState() => _WelcomeState();
 }
 
-class _WelcomeState extends State<Welcome> {
+ class _WelcomeState extends State<Welcome> {
   int _selectedIndex = 0;
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+ void _onItemTapped(int index) {
+  setState(() {
+    _selectedIndex = index;
+  });
 
-    if (_selectedIndex == 0) {
-      // Navega a la vista del perfil
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const UserProfileScreen(),
-        ),
-      );
-    } else if (_selectedIndex == 1) {
-      _showModal();
-    }
-  }
-
-  void _onMenuItemSelected(String value) {
-    switch (value) {
-      case 'Calculadora':
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const CalculadoraM(),
-          ),
-        );
-        break;
-      case 'CalVoz':
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const CalDeVoz(),
-          ),
-        );
-        break;
-    }
-  }
-
-  void _showModal() {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ElevatedButton(
-                onPressed: () => _onMenuItemSelected(""),
-                child: const Text('Calculadora Camara'),
-              ),
-              ElevatedButton(
-                onPressed: () => _onMenuItemSelected('Calculadora'),
-                child: const Text('Calculadora Manual'),
-              ),
-              ElevatedButton(
-                onPressed: () => _onMenuItemSelected('CalVoz'),
-                child: const Text('Calculadora de voz'),
-              ),
-            ],
-          ),
-        );
-      },
+  // Lógica de navegación fuera de setState
+  if (_selectedIndex == 0) {
+    // Navegar a UserProfileScreen si se selecciona el índice 0 (Perfil)
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const UserProfileScreen(),
+      ),
+    );
+  } else if (_selectedIndex == 1) {
+    // Navegar a CalDeVoz si se selecciona el índice 1 (Calculadoras)
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CalDeVoz(),
+      ),
     );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +72,7 @@ class _WelcomeState extends State<Welcome> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.calculate),
-            label: 'Calculadoras',
+            label: 'Calculadora',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),

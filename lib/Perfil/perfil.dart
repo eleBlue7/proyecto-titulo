@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:supcalculadora/logins-registros/login_screen.dart';// Asegúrate de importar la pantalla de inicio de sesión
+
+import 'package:supcalculadora/logins-registros/login_screen.dart';
+
+// Asegúrate de importar la pantalla de inicio de sesión
 
 class UserProfileScreen extends StatelessWidget {
   const UserProfileScreen({super.key});
