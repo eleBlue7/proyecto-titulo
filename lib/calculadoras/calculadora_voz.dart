@@ -1,4 +1,6 @@
 
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -101,7 +103,6 @@ class _CalDeVozState extends State<CalDeVoz> {
         .replaceAll('punto', '.');
   }
 
-  // Función para guardar productos en Firebase Firestore
 Future<void> saveProductsToFirestore() async {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
@@ -109,21 +110,22 @@ Future<void> saveProductsToFirestore() async {
     // Obtener el usuario autenticado y su nombre
     User? user = FirebaseAuth.instance.currentUser;
     String userName = user?.displayName ?? 'UsuarioDesconocido'; // Si no hay nombre, usar un valor por defecto
+     String userId = userName; // Obtener el UID del usuario para referencias únicas
 
-    // Referencia al documento donde guardas el número de historial
-    DocumentReference counterDoc = firestore.collection('Configuración').doc('contadorHistorial');
+    // Referencia al documento del usuario en Firestore
+    DocumentReference userDoc = firestore.collection('Usuarios').doc(userId);
 
-    // Leer el número de historial actual
-    DocumentSnapshot snapshot = await counterDoc.get();
+    // Leer el número de historial actual para este usuario
+    DocumentSnapshot snapshot = await userDoc.get();
 
-    int historialNumero = 1; // Valor por defecto si no existe el contador
+    int historialNumero = 1; // Valor por defecto si no existe el contador para el usuario
 
     if (snapshot.exists && snapshot.data() != null) {
-      historialNumero = snapshot['siguientehistorial'] ?? 1; // Lee el último número de historial
+      historialNumero = snapshot['siguientehistorial'] ?? 1; // Lee el último número de historial del usuario
     }
 
     // Crear el nuevo ID para el historial en la colección "Historiales"
-    String customId = "$userName-Historial $historialNumero";
+    String customId = "Historial N°$historialNumero de $userName";
 
     // Guardar el nuevo historial en la colección "Historiales"
     CollectionReference productsCollection = firestore.collection('Historiales');
@@ -134,10 +136,13 @@ Future<void> saveProductsToFirestore() async {
       'Productos guardados': products.map((product) => product.toJson()).toList(),
     });
 
-    // Incrementar el número del historial y actualizar el valor en Firestore
-    await counterDoc.set({
-      'siguientehistorial': historialNumero + 1, // Incrementar el contador
-    });
+
+    
+    
+    // Incrementar el número del historial solo para este usuario y actualizar el valor en Firestore
+    await userDoc.set({
+      'siguientehistorial': historialNumero + 1, // Incrementar el contador solo para este usuario
+    }, SetOptions(merge: true));
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Productos guardados en Firebase')),
@@ -148,6 +153,7 @@ Future<void> saveProductsToFirestore() async {
     );
   }
 }
+
 
   @override
   Widget build(BuildContext context) {
