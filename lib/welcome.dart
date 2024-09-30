@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:supcalculadora/Perfil/perfil.dart';
 import 'package:supcalculadora/calculadoras/calculadora_manual.dart';
-import 'package:supcalculadora/calculadoras/calculadoraDeVoz.dart';
+import 'package:supcalculadora/calculadoras/calculadoraDeVoz.dart'; // Asegúrate de importar la pantalla del perfil
 
 class Welcome extends StatefulWidget {
   const Welcome({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _WelcomeState createState() => _WelcomeState();
 }
 
@@ -18,8 +18,15 @@ class _WelcomeState extends State<Welcome> {
       _selectedIndex = index;
     });
 
-    if (_selectedIndex == 1) {
-      // Muestra el modal solo cuando se selecciona la opción de "Settings"
+    if (_selectedIndex == 0) {
+      // Navega a la vista del perfil
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const UserProfileScreen(),
+        ),
+      );
+    } else if (_selectedIndex == 1) {
       _showModal();
     }
   }
@@ -42,7 +49,6 @@ class _WelcomeState extends State<Welcome> {
           ),
         );
         break;
-      // Agrega más casos según sea necesario
     }
   }
 
@@ -68,7 +74,6 @@ class _WelcomeState extends State<Welcome> {
                 onPressed: () => _onMenuItemSelected('CalVoz'),
                 child: const Text('Calculadora de voz'),
               ),
-              // Agrega más opciones según sea necesario
             ],
           ),
         );
@@ -83,11 +88,9 @@ class _WelcomeState extends State<Welcome> {
         title: const Text("Bienvenido..."),
       ),
       body: Container(
-        
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage(
-                "assets/logo.png"), // Reemplaza con la ruta de tu imagen
+            image: AssetImage("assets/logo.png"),
             fit: BoxFit.cover,
           ),
         ),
@@ -96,7 +99,6 @@ class _WelcomeState extends State<Welcome> {
             padding: EdgeInsets.all(50),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              
             ),
           ),
         ),
@@ -111,7 +113,6 @@ class _WelcomeState extends State<Welcome> {
             icon: Icon(Icons.calculate),
             label: 'Calculadoras',
           ),
-          // Cambiado a un IconButton en lugar de BottomNavigationBarItem
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Ajustes',
