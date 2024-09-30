@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:supcalculadora/calculadoras/calculadora_manual.dart';
-import 'package:supcalculadora/calculadoras/calculadoraDeVoz.dart';
+import 'package:supcalculadora/calculadora/calculadoraDeVoz.dart';
 
 class Welcome extends StatefulWidget {
   const Welcome({super.key});
@@ -10,7 +9,7 @@ class Welcome extends StatefulWidget {
   _WelcomeState createState() => _WelcomeState();
 }
 
-class _WelcomeState extends State<Welcome> {
+ class _WelcomeState extends State<Welcome> {
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
@@ -19,61 +18,13 @@ class _WelcomeState extends State<Welcome> {
     });
 
     if (_selectedIndex == 1) {
-      // Muestra el modal solo cuando se selecciona la opción de "Settings"
-      _showModal();
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CalDeVoz(),
+        ),
+      );
     }
-  }
-
-  void _onMenuItemSelected(String value) {
-    switch (value) {
-      case 'Calculadora':
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const CalculadoraM(),
-          ),
-        );
-        break;
-      case 'CalVoz':
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const CalDeVoz(),
-          ),
-        );
-        break;
-      // Agrega más casos según sea necesario
-    }
-  }
-
-  void _showModal() {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ElevatedButton(
-                onPressed: () => _onMenuItemSelected(""),
-                child: const Text('Calculadora Camara'),
-              ),
-              ElevatedButton(
-                onPressed: () => _onMenuItemSelected('Calculadora'),
-                child: const Text('Calculadora Manual'),
-              ),
-              ElevatedButton(
-                onPressed: () => _onMenuItemSelected('CalVoz'),
-                child: const Text('Calculadora de voz'),
-              ),
-              // Agrega más opciones según sea necesario
-            ],
-          ),
-        );
-      },
-    );
   }
 
   @override
@@ -109,7 +60,7 @@ class _WelcomeState extends State<Welcome> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.calculate),
-            label: 'Calculadoras',
+            label: 'Calculadora',
           ),
           // Cambiado a un IconButton en lugar de BottomNavigationBarItem
           BottomNavigationBarItem(
