@@ -98,32 +98,37 @@ class _WelcomeState extends State<Welcome> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-            "Bienvenido a AddUpFast❗$userName"), // Solo se muestra el nombre aquí
+        centerTitle: true, // Centramos el título en el AppBar
+        title: const Text(
+            "Bienvenido a AddUpFast❗"), // El título está centrado en el AppBar
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/logo.png"),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(50),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Elimina o comenta este widget si no quieres mostrar el nombre en el centro
-                // Text(
-                //   'Bienvenido, $userName', // Removido para evitar redundancia en el centro
-                //   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                // ),
-                // Otros widgets o contenido que desees mantener
-              ],
+      body: Stack(
+        children: [
+          // Fondo de pantalla que se ajusta correctamente
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("assets/logo.png"),
+                fit: BoxFit
+                    .cover, // Aseguramos que la imagen cubra toda la pantalla sin desplazarse
+              ),
             ),
           ),
-        ),
+          // Centrar el nombre del usuario en la parte superior
+          Align(
+            alignment: Alignment.topCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(
+                  top: 80.0), // Ajuste del espacio desde el AppBar
+              child: Text(
+                userName, // Mostrar el nombre del usuario
+                style:
+                    const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center, // Centrar el texto
+              ),
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
@@ -133,7 +138,7 @@ class _WelcomeState extends State<Welcome> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.calculate),
-            label: 'Calculadoras',
+            label: 'Calculadora',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
