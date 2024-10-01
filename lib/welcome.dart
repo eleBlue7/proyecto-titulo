@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:supcalculadora/Perfil/perfil.dart';
 import 'package:supcalculadora/calculadoras/calculadora_voz.dart';
 import 'package:supcalculadora/calculadoras/calculadora_manual.dart';
+import 'package:supcalculadora/Configuraciones/configuraciones.dart';
 
 class Welcome extends StatefulWidget {
   const Welcome({super.key});
@@ -88,6 +89,12 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
       );
     } else if (_selectedIndex == 1) {
       _showCalculatorOptions();
+    } else if (_selectedIndex == 2) {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const Configuraciones(),
+          ));
     }
   }
 
