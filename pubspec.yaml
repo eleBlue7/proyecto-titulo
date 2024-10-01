@@ -33,6 +33,9 @@ dependencies:
   math_expressions: ^2.0.0
   speech_to_text: ^6.5.1
   intl: ^0.17.0  # librería intl para la calculadora manual
+  curved_navigation_bar: ^1.0.3 # librería para la barra de navegación
+  animated_text_kit: ^4.2.1 # librería para la animación de texto locuraaaa
+  
 
 
   # The following adds the Cupertino Icons font to your application.
