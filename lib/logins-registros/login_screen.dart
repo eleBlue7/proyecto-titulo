@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously, unused_local_variable
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:supcalculadora/welcome.dart';
@@ -27,7 +29,6 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _email,
         password: _password,
       );
-      print("User Logged in: ${userCredential.user!.email}");
       Navigator.push(
         context,
         MaterialPageRoute(

@@ -1,5 +1,8 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
 
 import 'package:supcalculadora/logins-registros/login_screen.dart';
 
@@ -28,7 +31,8 @@ class UserProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    user.displayName ?? "Usuario sin nombre", // Mostrar el nombre o un mensaje si no tiene nombre
+                    user.displayName ??
+                        "Usuario sin nombre", // Mostrar el nombre o un mensaje si no tiene nombre
                     style: const TextStyle(
                         fontSize: 32, fontWeight: FontWeight.bold),
                   ),
@@ -46,7 +50,8 @@ class UserProfileScreen extends StatelessWidget {
                       // Redirigir a la pantalla de inicio de sesión
                       Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        MaterialPageRoute(
+                            builder: (context) => const LoginScreen()),
                         (Route<dynamic> route) => false,
                       );
                     },
@@ -59,4 +64,3 @@ class UserProfileScreen extends StatelessWidget {
     );
   }
 }
-
