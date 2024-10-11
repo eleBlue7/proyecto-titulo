@@ -1,13 +1,15 @@
-
-// ignore_for_file: use_build_context_synchronously, unused_local_variable
+// ignore_for_file: use_build_context_synchronously, unused_local_variable, depend_on_referenced_packages, unused_import
 
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:permission_handler/permission_handler.dart';
-// ignore: depend_on_referenced_packages
 import 'package:cloud_firestore/cloud_firestore.dart'; // Importa Firebase Firestore
+import 'package:path_provider/path_provider.dart'; // Para guardar en local
+import 'dart:io'; // Para trabajar con archivos
+import 'dart:convert'; // Para la conversión a JSON
+import 'package:supcalculadora/historial /historial.dart';
 
 void requestPermissions() async {
   var status = await Permission.microphone.request();
@@ -47,7 +49,6 @@ class _CalDeVozState extends State<CalDeVoz> {
   SpeechToText speechToText = SpeechToText();
 
   List<Product> products = []; // Lista de productos
-
   var text = "Apreta el botón para comenzar a decir los precios!";
   var isListening = false;
   bool isSpeechProcessed = false;
@@ -103,55 +104,152 @@ class _CalDeVozState extends State<CalDeVoz> {
         .replaceAll('punto', '.');
   }
 
-Future<void> saveProductsToFirestore() async {
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
+// Función para eliminar productos localmente y mover a la papelera en Firebase
+  Future<void> deleteProductLocallyAndMoveToTrash(
+      String productId, Map<String, dynamic> productData) async {
+    try {
+      // Eliminar del almacenamiento local
+      await deleteProductFromLocalStorage(productId);
 
-  try {
-    // Obtener el usuario autenticado y su nombre
-    User? user = FirebaseAuth.instance.currentUser;
-    String userName = user?.displayName ?? 'UsuarioDesconocido'; // Si no hay nombre, usar un valor por defecto
-    String userId = user?.uid ?? 'uidDesconocido'; // Obtener el UID del usuario para referencias únicas
+      // Mover el producto eliminado a la papelera en Firebase
+      await moveProductToTrashInFirestore(productId, productData);
 
-    // Referencia al documento del usuario en Firestore
-    DocumentReference userDoc = firestore.collection('Usuarios').doc(userName); // Usa el nombre del usuario como ID
-
-    // Leer el número de historial actual para este usuario
-    DocumentSnapshot snapshot = await userDoc.get();
-
-    int historialNumero = 1; // Valor por defecto si no existe el contador para el usuario
-
-    if (snapshot.exists && snapshot.data() != null) {
-      historialNumero = snapshot['siguientehistorial'] ?? 1; // Lee el último número de historial del usuario
+      // Mostrar un mensaje de éxito
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Producto eliminado localmente y movido a la papelera en Firebase')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al eliminar producto: $e')),
+      );
     }
-
-    // Crear el nuevo ID para el historial en la subcolección "Historiales" del usuario
-    String customId = "Historial N°$historialNumero de $userName";
-
-    // Guardar el nuevo historial en la subcolección "Historiales" dentro del documento del usuario
-    CollectionReference productsCollection = userDoc.collection('Historiales'); // Subcolección
-    await productsCollection.doc(customId).set({
-      'Usuario': userName, // Guardar el nombre del usuario
-      'Hora de guardado': FieldValue.serverTimestamp(),
-      'Total': getTotal(),
-      'Productos guardados': products.map((product) => product.toJson()).toList(),
-    });
-
-    // Incrementar el número del historial solo para este usuario y actualizar el valor en Firestore
-    await userDoc.set({
-      'siguientehistorial': historialNumero + 1, // Incrementar el contador solo para este usuario
-    }, SetOptions(merge: true));
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Productos guardados en Firebase')),
-    );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error al guardar productos: $e')),
-    );
   }
-}
 
+// Función para eliminar del almacenamiento local
+  Future<void> deleteProductFromLocalStorage(String productId) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/historial.json');
 
+    if (await file.exists()) {
+      // Leer el contenido del archivo local
+      String contents = await file.readAsString();
+      List<dynamic> jsonData = jsonDecode(contents);
+
+      // Eliminar el producto con el productId
+      jsonData.removeWhere((product) => product['id'] == productId);
+
+      // Guardar de nuevo el archivo actualizado
+      await file.writeAsString(jsonEncode(jsonData));
+    }
+  }
+
+// Función para mover el producto a la "Papelera" en Firebase
+  Future<void> moveProductToTrashInFirestore(
+      String productId, Map<String, dynamic> productData) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    User? user = FirebaseAuth.instance.currentUser;
+    String userName = user?.displayName ?? 'UsuarioDesconocido';
+
+    // Mover el producto a la colección 'Papelera'
+    await firestore
+        .collection('Usuarios')
+        .doc(userName)
+        .collection('Papelera')
+        .doc(productId)
+        .set(productData);
+
+    // Eliminar el producto del historial original
+    await firestore
+        .collection('Usuarios')
+        .doc(userName)
+        .collection('Historiales')
+        .doc(productId)
+        .delete();
+  }
+
+  Future<void> saveProductsLocallyAndFirestore() async {
+    try {
+      // Primero, guardar los productos en Firebase
+      await saveProductsToFirestore();
+
+      // Después, guardar los productos localmente
+      final directory = await getApplicationDocumentsDirectory();
+      final file = File('${directory.path}/historial.json');
+
+      // Convertir los productos a JSON
+      List<Map<String, dynamic>> productList =
+          products.map((product) => product.toJson()).toList();
+      String jsonProducts = jsonEncode(productList);
+
+      // Guardar el archivo localmente
+      await file.writeAsString(jsonProducts);
+
+      // Mostrar solo un mensaje de éxito después de completar ambas funciones
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Guardado!')),
+      );
+    } catch (e) {
+      // Mostrar un mensaje de error si ocurre algún problema en cualquiera de las operaciones
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al guardar: $e')),
+      );
+    }
+  }
+
+  Future<void> saveProductsToFirestore() async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    try {
+      // Obtener el usuario autenticado y su nombre
+      User? user = FirebaseAuth.instance.currentUser;
+      String userName = user?.displayName ??
+          'UsuarioDesconocido'; // Si no hay nombre, usar un valor por defecto
+      String userId = user?.uid ??
+          'uidDesconocido'; // Obtener el UID del usuario para referencias únicas
+
+      // Referencia al documento del usuario en Firestore
+      DocumentReference userDoc = firestore
+          .collection('Usuarios')
+          .doc(userName); // Usa el nombre del usuario como ID
+
+      // Leer el número de historial actual para este usuario
+      DocumentSnapshot snapshot = await userDoc.get();
+
+      int historialNumero =
+          1; // Valor por defecto si no existe el contador para el usuario
+
+      if (snapshot.exists && snapshot.data() != null) {
+        historialNumero = snapshot['siguientehistorial'] ??
+            1; // Lee el último número de historial del usuario
+      }
+
+      // Crear el nuevo ID para el historial en la subcolección "Historiales" del usuario
+      String customId = "Historial N°$historialNumero de $userName";
+
+      // Guardar el nuevo historial en la subcolección "Historiales" dentro del documento del usuario
+      CollectionReference productsCollection =
+          userDoc.collection('Historiales'); // Subcolección
+      await productsCollection.doc(customId).set({
+        'Usuario': userName, // Guardar el nombre del usuario
+        'Hora de guardado': FieldValue.serverTimestamp(),
+        'Total': getTotal(),
+        'Productos guardados':
+            products.map((product) => product.toJson()).toList(),
+      });
+
+      // Incrementar el número del historial solo para este usuario y actualizar el valor en Firestore
+      await userDoc.set({
+        'siguientehistorial': historialNumero +
+            1, // Incrementar el contador solo para este usuario
+      }, SetOptions(merge: true));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al guardar productos en Firebase: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -249,7 +347,7 @@ Future<void> saveProductsToFirestore() async {
             IconButton(
               icon: const Icon(Icons.save),
               onPressed:
-                  saveProductsToFirestore, // Llama a la función para guardar en Firebase
+                  saveProductsLocallyAndFirestore, // Llama a la nueva función que guarda en Firebase y localmente
             )
           ],
         ),

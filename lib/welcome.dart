@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:supcalculadora/Perfil/perfil.dart';
@@ -150,10 +152,10 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
           opacity: _fadeAnimation, // Aplicar la animación de parpadeo
           child: Stack(
             children: [
-              Text(
+              const Text(
                 "Bienvenido a AddUpFast❗",
-                style: const TextStyle(
-                  fontSize: 28,
+                style: TextStyle(
+                  fontSize: 25,
                   fontWeight: FontWeight.bold,
                   color: Colors.black, // Color negro para las letras
                 ),
@@ -175,7 +177,7 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
                 child: const Text(
                   "Bienvenido a AddUpFast❗",
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: 25,
                     fontWeight: FontWeight.bold,
                     color: Color.fromARGB(
                         255, 146, 217, 255), // Color cubierto por el brillo
