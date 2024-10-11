@@ -1,21 +1,13 @@
-
-// ignore_for_file: use_build_context_synchronously, unused_local_variable
-
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:permission_handler/permission_handler.dart';
-// ignore: depend_on_referenced_packages
-import 'package:cloud_firestore/cloud_firestore.dart'; // Importa Firebase Firestore
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 void requestPermissions() async {
-  var status = await Permission.microphone.request();
-  if (status == PermissionStatus.granted) {
-    // Micrófono permitido
-  } else {
-    // Micrófono denegado
-  }
+  await Permission.microphone.request();
 }
 
 class Product {
@@ -24,13 +16,11 @@ class Product {
 
   Product(this.nombre, this.precio);
 
-  // Para guardar en Firebase Firestore
   Map<String, dynamic> toJson() => {
         'Nombre del producto': nombre,
         'Precio': precio,
       };
 
-  // Para recuperar desde Firebase Firestore
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(json['Nombre del producto'], json['Precio']);
   }
@@ -45,10 +35,8 @@ class CalDeVoz extends StatefulWidget {
 
 class _CalDeVozState extends State<CalDeVoz> {
   SpeechToText speechToText = SpeechToText();
-
-  List<Product> products = []; // Lista de productos
-
-  var text = "Apreta el botón para comenzar a decir los precios!";
+  List<Product> products = [];
+  var text = "Presiona el botón para dictar productos y precios";
   var isListening = false;
   bool isSpeechProcessed = false;
 
@@ -56,14 +44,17 @@ class _CalDeVozState extends State<CalDeVoz> {
   void initState() {
     super.initState();
     requestPermissions();
+    _setFullScreenMode();
+  }
+
+  void _setFullScreenMode() {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
 
   int getTotal() {
-    if (products.isEmpty) {
-      return 0; // Si la lista está vacía, devuelve 0
-    } else {
-      return products.map((product) => product.precio).reduce((a, b) => a + b);
-    }
+    return products.isEmpty
+        ? 0
+        : products.map((p) => p.precio).reduce((a, b) => a + b);
   }
 
   void stopListeningInternally() {
@@ -93,220 +84,205 @@ class _CalDeVozState extends State<CalDeVoz> {
         .replaceAll('siete', '7')
         .replaceAll('ocho', '8')
         .replaceAll('nueve', '9')
-        .replaceAll('diez', '10')
-        .replaceAll('once', '11')
-        .replaceAll('doce', '12')
-        .replaceAll('trece', '13')
-        .replaceAll('catorce', '14')
-        .replaceAll('quince', '15')
-        .replaceAll('coma', '.')
-        .replaceAll('punto', '.');
+        .replaceAll('diez', '10');
   }
 
-Future<void> saveProductsToFirestore() async {
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-  try {
-    // Obtener el usuario autenticado y su nombre
+  Future<void> saveProductsToFirestore() async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
     User? user = FirebaseAuth.instance.currentUser;
-    String userName = user?.displayName ?? 'UsuarioDesconocido'; // Si no hay nombre, usar un valor por defecto
-    String userId = user?.uid ?? 'uidDesconocido'; // Obtener el UID del usuario para referencias únicas
+    String userName = user?.displayName ?? 'UsuarioDesconocido';
 
-    // Referencia al documento del usuario en Firestore
-    DocumentReference userDoc = firestore.collection('Usuarios').doc(userName); // Usa el nombre del usuario como ID
-
-    // Leer el número de historial actual para este usuario
+    DocumentReference userDoc = firestore.collection('Usuarios').doc(userName);
     DocumentSnapshot snapshot = await userDoc.get();
+    int historialNumero = snapshot.exists && snapshot.data() != null
+        ? snapshot['siguientehistorial'] ?? 1
+        : 1;
 
-    int historialNumero = 1; // Valor por defecto si no existe el contador para el usuario
-
-    if (snapshot.exists && snapshot.data() != null) {
-      historialNumero = snapshot['siguientehistorial'] ?? 1; // Lee el último número de historial del usuario
-    }
-
-    // Crear el nuevo ID para el historial en la subcolección "Historiales" del usuario
     String customId = "Historial N°$historialNumero de $userName";
 
-    // Guardar el nuevo historial en la subcolección "Historiales" dentro del documento del usuario
-    CollectionReference productsCollection = userDoc.collection('Historiales'); // Subcolección
+    CollectionReference productsCollection = userDoc.collection('Historiales');
     await productsCollection.doc(customId).set({
-      'Usuario': userName, // Guardar el nombre del usuario
+      'Usuario': userName,
       'Hora de guardado': FieldValue.serverTimestamp(),
       'Total': getTotal(),
-      'Productos guardados': products.map((product) => product.toJson()).toList(),
+      'Productos guardados': products.map((p) => p.toJson()).toList(),
     });
 
-    // Incrementar el número del historial solo para este usuario y actualizar el valor en Firestore
-    await userDoc.set({
-      'siguientehistorial': historialNumero + 1, // Incrementar el contador solo para este usuario
-    }, SetOptions(merge: true));
+    await userDoc.set(
+        {'siguientehistorial': historialNumero + 1}, SetOptions(merge: true));
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Productos guardados en Firebase')),
     );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error al guardar productos: $e')),
-    );
   }
-}
-
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: AvatarGlow(
-          animate: isListening,
-          duration: const Duration(milliseconds: 1000),
-          glowColor: Colors.blue,
-          child: GestureDetector(
-            onTapDown: (details) async {
-              if (!isListening && !isSpeechProcessed) {
-                var available = await speechToText.initialize();
-                if (available) {
-                  setState(() {
-                    isListening = true;
-                    isSpeechProcessed = true;
-                    speechToText.listen(
-                      onResult: (result) {
-                        setState(() {
-                          if (result.recognizedWords.isNotEmpty) {
-                            String recognizedWords =
-                                result.recognizedWords.toLowerCase();
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: AvatarGlow(
+        animate: isListening,
+        glowColor: const Color(0xFF6D6DFF),
+        duration: const Duration(milliseconds: 2000),
+        child: GestureDetector(
+          onTapDown: (details) async {
+            if (!isListening && !isSpeechProcessed) {
+              var available = await speechToText.initialize();
+              if (available) {
+                setState(() {
+                  isListening = true;
+                  isSpeechProcessed = true;
+                  speechToText.listen(
+                    onResult: (result) {
+                      setState(() {
+                        if (result.recognizedWords.isNotEmpty) {
+                          List<String> words =
+                              result.recognizedWords.split(" ");
+                          if (words.length == 2) {
+                            String productName =
+                                words.sublist(0, words.length - 1).join(" ");
+                            String priceWord = words.last;
 
-                            // Dividir las palabras reconocidas en una lista
-                            List<String> words = recognizedWords.split(" ");
+                            String processedPrice =
+                                processRecognizedWords(priceWord);
+                            int productPrice =
+                                int.tryParse(processedPrice) ?? 0;
 
-                            if (words.length == 2) {
-                              // Asegúrate de tener al menos un nombre y un precio
-                              String productName = words
-                                  .sublist(0, words.length - 1)
-                                  .join(
-                                      " "); // El nombre son todas las palabras excepto la última
-                              String priceWord =
-                                  words.last; // La última palabra es el precio
-
-                              // Procesar las palabras y convertirlas a números
-                              String processedPrice =
-                                  processRecognizedWords(priceWord);
-
-                              int productPrice = 0;
-                              try {
-                                productPrice = int.parse(processedPrice);
-                              } catch (e) {
-                                text =
-                                    "Por favor, diga un producto y su precio válido.";
-                              }
-
-                              if (productPrice > 0) {
-                                products.add(Product(productName,
-                                    productPrice)); // Usa el nombre y el precio reconocidos
-                              } else {
-                                text =
-                                    "Por favor, diga un producto y su precio válido.";
-                              }
+                            if (productPrice > 0) {
+                              products.add(Product(productName, productPrice));
                             } else {
-                              text =
-                                  "Por favor, diga el nombre del producto y el precio.";
+                              text = "Indique un producto y su precio";
                             }
-
-                            // Detener la escucha automáticamente después de procesar
-                            stopListeningInternally();
+                          } else {
+                            text = "Indique el nombre y precio del producto";
                           }
-                        });
-                      },
-                    );
-                  });
-                }
+                          stopListeningInternally();
+                        }
+                      });
+                    },
+                  );
+                });
               }
-            },
-            onTapUp: (details) {
-              stopListeningInternally();
-            },
+            }
+          },
+          onTapUp: (details) {
+            stopListeningInternally();
+          },
+          child: AnimatedScale(
+            scale: isListening ? 1.2 : 1.0,
+            duration: const Duration(milliseconds: 200),
             child: CircleAvatar(
-              backgroundColor: const Color.fromARGB(255, 104, 166, 218),
+              backgroundColor: const Color(0xFF6D6DFF),
               radius: 35,
               child: Icon(isListening ? Icons.mic : Icons.mic_none,
                   color: Colors.white),
             ),
           ),
         ),
-        appBar: AppBar(
-          leading: const Icon(Icons.sort_rounded, color: Colors.white),
-          centerTitle: true,
-          backgroundColor: Colors.blue,
-          elevation: 0.0,
-          title: const Text(
-            "Calculadora Voz",
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
-            ),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.save),
-              onPressed:
-                  saveProductsToFirestore, // Llama a la función para guardar en Firebase
-            )
-          ],
-        ),
-        body: SingleChildScrollView(
-          reverse: true,
-          physics: const BouncingScrollPhysics(),
-          child: Container(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height * 0.7,
-            alignment: Alignment.center,
+      ),
+      appBar: AppBar(
+        leading: const Icon(Icons.sort_rounded, color: Colors.white),
+        centerTitle: true,
+        backgroundColor: const Color(0xFF6D6DFF),
+        elevation: 0.0,
+        title: const Text(
+          "AddUpFast❗🗣️Voz",
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
             color: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            margin: const EdgeInsets.only(bottom: 150),
-            child: Column(
-              children: [
-                Text(
-                  text,
-                  style: TextStyle(
-                      fontSize: 24,
-                      color: isListening ? Colors.black54 : Colors.black,
-                      fontWeight: FontWeight.w600),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: saveProductsToFirestore,
+          )
+        ],
+      ),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFF4B0082),
+                    Color.fromARGB(255, 197, 235, 248),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                Text(
-                  'Total: ${getTotal().toString()}',
-                  style: TextStyle(
-                    fontSize: 24,
-                    color: isListening ? Colors.black54 : Colors.black,
-                    fontWeight: FontWeight.w600,
-                  ),
+              ),
+              child: Opacity(
+                opacity: 0.1,
+                child: Image.asset(
+                  'assets/logo-v2.png',
+                  fit: BoxFit.cover,
                 ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: products.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(products[index].nombre),
-                            Text(products[index].precio.toString()),
-                            IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: () {
-                                setState(() {
-                                  products.removeAt(index);
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                )
-              ],
+              ),
             ),
           ),
-        ));
+          Center(
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    text,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 24,
+                      color: isListening ? Colors.white70 : Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Total sumado: ${getTotal().toString()}',
+                    style: TextStyle(
+                      fontSize: 24,
+                      color: isListening ? Colors.white70 : Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: products.length,
+                      itemBuilder: (context, index) {
+                        return Card(
+                          elevation: 3,
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: ListTile(
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(products[index].nombre),
+                                Text('\$${products[index].precio.toString()}'),
+                                IconButton(
+                                  icon: const Icon(Icons.close),
+                                  onPressed: () {
+                                    setState(() {
+                                      products.removeAt(index);
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

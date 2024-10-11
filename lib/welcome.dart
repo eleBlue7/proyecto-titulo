@@ -47,11 +47,9 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
       ),
     );
 
-    _fadeController.repeat(
-        reverse:
-            true); // Repetir la animación hacia adelante y hacia atrás 3 veces
+    _fadeController.repeat(reverse: true); // Repetir animación
     Future.delayed(const Duration(seconds: 9), () {
-      _fadeController.stop(); // Detener la animación después de 3 repeticiones
+      _fadeController.stop(); // Detener la animación después de 9 segundos
     });
   }
 
@@ -75,6 +73,7 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
     });
   }
 
+  // Función para manejar la interacción con los íconos de navegación
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -98,46 +97,148 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
     }
   }
 
-  // Función para mostrar el modal con las opciones
+  // Función para mostrar el modal con las opciones de calculadoras
   void _showCalculatorOptions() {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return Container(
-          padding: const EdgeInsets.all(16),
+          height: 250,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.9),
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(30),
+              topRight: Radius.circular(30),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                offset: const Offset(0, -10),
+                blurRadius: 20,
+              ),
+            ],
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context); // Cierra el modal
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CalDeVoz(),
-                    ),
-                  );
-                },
-                child: const Text('🗣️ Calculadora de voz'),
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Text(
+                  "Seleccione una opción",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    foreground: Paint()
+                      ..shader = LinearGradient(
+                        colors: <Color>[
+                          Colors.purple,
+                          Colors.blue,
+                          Colors.green,
+                        ],
+                      ).createShader(
+                        const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0),
+                      ),
+                    shadows: [
+                      Shadow(
+                        offset: Offset(2, 2),
+                        blurRadius: 4.0,
+                        color: Colors.black.withOpacity(0.25),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context); // Cierra el modal
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          const CalculadoraM(), // La otra calculadora
-                    ),
-                  );
-                },
-                child: const Text('🧮 Calculadora manual'),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildFancyOptionCard(
+                    icon: Icons.mic,
+                    label: "Calculadora de voz",
+                    startColor: Colors.blueAccent,
+                    endColor: Colors.cyanAccent,
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CalDeVoz(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildFancyOptionCard(
+                    icon: Icons.calculate,
+                    label: "Calculadora manual",
+                    startColor: Colors.orangeAccent,
+                    endColor: Colors.deepOrangeAccent,
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CalculadoraM(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  // Función para crear tarjetas con gradientes y animación de hover
+  Widget _buildFancyOptionCard({
+    required IconData icon,
+    required String label,
+    required Color startColor,
+    required Color endColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        width: 140,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [startColor, endColor],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 8,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 50),
+            const SizedBox(height: 10),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -150,12 +251,15 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
           opacity: _fadeAnimation, // Aplicar la animación de parpadeo
           child: Stack(
             children: [
-              Text(
-                "Bienvenido a AddUpFast❗",
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black, // Color negro para las letras
+              const FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  "Bienvenido a AddUpFast❗",
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
               ),
               ShaderMask(
@@ -177,8 +281,7 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(
-                        255, 146, 217, 255), // Color cubierto por el brillo
+                    color: Color.fromARGB(255, 146, 217, 255),
                   ),
                 ),
               ),
@@ -188,44 +291,38 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
       ),
       body: Stack(
         children: [
-          // Fondo de pantalla que se ajusta correctamente
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
                 image: AssetImage("assets/logo-v2.png"),
-                fit: BoxFit
-                    .cover, // Aseguramos que la imagen cubra toda la pantalla sin desplazarse
+                fit: BoxFit.cover,
               ),
             ),
           ),
-          // Centrar el nombre del usuario en la parte superior
           Align(
             alignment: Alignment.topCenter,
             child: Padding(
-              padding: const EdgeInsets.only(
-                  top: 80.0), // Ajuste del espacio desde el AppBar
+              padding: const EdgeInsets.only(top: 80.0),
               child: Text(
-                userName, // Mostrar el nombre del usuario
+                userName,
                 style: const TextStyle(
-                  fontSize: 36, // Tamaño de la fuente más grande
+                  fontSize: 36,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black, // Color del texto principal
+                  color: Colors.black,
                   shadows: [
                     Shadow(
                       blurRadius: 10.0,
-                      color: Color.fromRGBO(
-                          179, 254, 255, 1), // Color brillante para el borde
-                      offset: Offset(0, 0), // Posición de la sombra (borde)
+                      color: Color.fromRGBO(179, 254, 255, 1),
+                      offset: Offset(0, 0),
                     ),
                     Shadow(
                       blurRadius: 20.0,
-                      color: Color.fromARGB(
-                          255, 207, 255, 241), // Doble borde brillante
+                      color: Color.fromARGB(255, 207, 255, 241),
                       offset: Offset(0, 0),
                     ),
                   ],
                 ),
-                textAlign: TextAlign.center, // Centrar el texto
+                textAlign: TextAlign.center,
               ),
             ),
           ),
@@ -233,8 +330,7 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
-        color: const Color.fromARGB(
-            0, 84, 212, 240), // Fondo transparente para el diseño macOS
+        color: const Color.fromARGB(0, 84, 212, 240),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -263,19 +359,17 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
   }
 
   // Función para crear botones estilo macOS con animación de "tap"
-  Widget _buildMacOSButton(
-      {required IconData icon,
-      required Color color,
-      required int index,
-      required VoidCallback onTap}) {
+  Widget _buildMacOSButton({
+    required IconData icon,
+    required Color color,
+    required int index,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedScale(
-        scale: _activeButtonIndex == index
-            ? 2.0
-            : 1.0, // Ampliación del icono al hacer tap
-        duration:
-            const Duration(milliseconds: 370), // Ajuste de duración más notoria
+        scale: _activeButtonIndex == index ? 2.0 : 1.0,
+        duration: const Duration(milliseconds: 370),
         child: Container(
           width: 60,
           height: 60,
@@ -284,10 +378,9 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color:
-                    Colors.black.withOpacity(0.25), // Sombra para el efecto 3D
-                offset: const Offset(5, 5), // Desplazamiento de la sombra
-                blurRadius: 10, // Borrado para dar efecto de profundidad
+                color: Colors.black.withOpacity(0.25),
+                offset: const Offset(5, 5),
+                blurRadius: 10,
               ),
             ],
           ),
@@ -295,19 +388,19 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
             child: Icon(
               icon,
               color: Colors.white,
-              size: 30, // Tamaño del ícono
+              size: 30,
             ),
           ),
         ),
       ),
       onTapDown: (_) {
         setState(() {
-          _activeButtonIndex = index; // Cambiar al botón activo
+          _activeButtonIndex = index;
         });
       },
       onTapUp: (_) {
         setState(() {
-          _activeButtonIndex = -1; // Restaurar el estado después del "tap"
+          _activeButtonIndex = -1;
         });
       },
     );
