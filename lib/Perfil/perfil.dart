@@ -1,9 +1,12 @@
-import 'dart:io'; // Importa para usar File
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supcalculadora/Perfil/change_password.dart';
 import 'package:supcalculadora/Perfil/change_profile.dart';
+import 'package:supcalculadora/Perfil/instruccion.dart';
 import 'package:supcalculadora/logins-registros/login_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -17,22 +20,71 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   final ImagePicker _picker = ImagePicker();
   User? user;
   XFile? _imageFile;
+  String? _storedImagePath;
 
   @override
   void initState() {
     super.initState();
     // Obtener el usuario actual
     user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      _loadStoredImage(); // Cargar la imagen guardada al iniciar
+    }
+  }
+
+  Future<void> _loadStoredImage() async {
+    if (user != null) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      setState(() {
+        // Buscar la ruta de la imagen guardada asociada al UID del usuario
+        _storedImagePath = prefs.getString('profile_image_${user!.uid}');
+      });
+    }
   }
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
+    final XFile? pickedFile =
+        await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null && user != null) {
+      final Directory appDir = await getApplicationDocumentsDirectory();
+      final String fileName =
+          '${user!.uid}_${pickedFile.name}'; // Usar el UID del usuario
+      final String savedImagePath = '${appDir.path}/$fileName';
+
+      // Guardar la imagen en el directorio local
+      File imageFile = File(pickedFile.path);
+      await imageFile.copy(savedImagePath);
+
+      // Guardar la ruta de la imagen en SharedPreferences asociada al UID del usuario
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('profile_image_${user!.uid}', savedImagePath);
+
       setState(() {
         _imageFile = pickedFile; // Actualizar la imagen seleccionada
+        _storedImagePath = savedImagePath; // Actualizar la ruta almacenada
       });
-      // Aquí puedes agregar la lógica para subir la imagen a Firebase Storage si es necesario
     }
+  }
+
+  // Método para mostrar el diálogo modal con la versión
+  void _showVersionDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Version de App'),
+          content: const Text('La aplicacion tiene la Versión 1.0'),
+          actions: [
+            TextButton(
+              child: const Text('Cerrar'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -40,6 +92,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Perfil del Usuario"),
+        actions: [
+          // Ícono que al ser presionado mostrará el diálogo
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            onPressed: _showVersionDialog, // Llama al método que muestra el diálogo
+          ),
+        ],
       ),
       body: user != null
           ? Column(
@@ -54,9 +113,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       radius: 60, // Tamaño del círculo
                       backgroundColor: Colors.grey.shade300, // Color del marco
                       child: ClipOval(
-                        child: _imageFile != null
+                        child: _storedImagePath != null
                             ? Image.file(
-                                File(_imageFile!.path),
+                                File(
+                                    _storedImagePath!), // Mostrar la imagen almacenada
                                 fit: BoxFit.cover,
                                 width: 120,
                                 height: 120,
@@ -71,7 +131,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                 : const Icon(
                                     Icons.person,
                                     size: 80,
-                                    color: Colors.grey, // Color del ícono predeterminado
+                                    color: Colors
+                                        .grey, // Color del ícono predeterminado
                                   )),
                       ),
                     ),
@@ -87,11 +148,33 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ),
                 const SizedBox(height: 10),
 
-                // Lista de opciones del perfil
+                // Lista de opciones del perfil con único subtítulo
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.all(19),
                     children: [
+                      // Subtítulo para configuración de cuenta
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.0),
+                        child: Text(
+                          'Configuración de cuenta',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.only(left: 8.0, bottom: 8.0),
+                        child: Text(
+                          'Administra tu información personal y tu contraseña de seguridad.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
                       ListTile(
                         leading: const Icon(Icons.person),
                         title: const Text('Cambiar Perfil'),
@@ -118,6 +201,31 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         },
                       ),
                       const Divider(),
+
+                      // Subtítulo para instrucciones
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.0),
+                        child: Text(
+                          'Instrucciones de uso',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.integration_instructions),
+                        title: const Text("Como Ocupar AddUpFast!"),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const InstructionScreen(),
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -144,7 +252,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           vertical: 16.0, horizontal: 32.0),
-                      backgroundColor: Colors.redAccent,
+                      backgroundColor: Colors.white,
                     ),
                     child: const Text(
                       'Cerrar Sesión',
@@ -153,11 +261,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                 ),
 
-                // Texto de agradecimiento
+                // Texto de derechos
                 const Padding(
                   padding: EdgeInsets.all(8.0),
                   child: Text(
-                    'Gracias por usar nuestra aplicación.',
+                    'Desarrollado por SmartSolutions.',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.black45, // Estilo transparente
