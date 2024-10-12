@@ -1,108 +1,149 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Importa esta librería
+import 'package:math_expressions/math_expressions.dart';
 
 class CalculadoraM extends StatefulWidget {
-  const CalculadoraM({super.key});
+  const CalculadoraM({Key? key}) : super(key: key);
 
   @override
   _CalculadoraMState createState() => _CalculadoraMState();
 }
 
 class _CalculadoraMState extends State<CalculadoraM> {
-  String input = '0';
-  String result = '0';
-  String operation = '';
-  String history = ''; // Para mostrar el historial de la operación
-  double num1 = 0;
-  double num2 = 0;
+  String input = '';
+  String history = '';
+  bool hasError = false;
+  final ScrollController _scrollController = ScrollController();
+  double fontSize = 80;
+  final List<String> operators = ['+', '-', 'x', '/', '%'];
+  bool isDecimalUsed = false;
+  bool isOperatorPressed = false;
 
-  // Función para manejar los botones de la calculadora
   void buttonPressed(String buttonText) {
+    if (hasError && buttonText != "AC") {
+      return;
+    }
+
     setState(() {
       if (buttonText == "AC") {
-        input = '0';
-        result = '0';
-        history = ''; // Limpia el historial
-        operation = '';
-        num1 = 0;
-        num2 = 0;
-      } else if (buttonText == '1' ||
-          buttonText == '2' ||
-          buttonText == '3' ||
-          buttonText == '4' ||
-          buttonText == '5' ||
-          buttonText == '6' ||
-          buttonText == '7' ||
-          buttonText == '8' ||
-          buttonText == '9' ||
-          buttonText == '0') {
-        if (input == '0') {
-          input = buttonText;
-        } else {
-          input += buttonText;
-        }
-      } else if (buttonText == '+' ||
-          buttonText == '-' ||
-          buttonText == 'x' ||
-          buttonText == '/') {
-        num1 = double.parse(input);
-        operation = buttonText;
-        history =
-            _formatNumber(num1) + ' ' + operation; // Guarda el historial sin .0
-        input = '0';
+        _resetCalculator();
+      } else if (buttonText == "C") {
+        _deleteLastCharacter();
+      } else if (buttonText == '.') {
+        _handleDecimalInput();
       } else if (buttonText == '=') {
-        num2 = double.parse(input);
-
-        if (operation == '+') {
-          result = (num1 + num2).toString();
-        } else if (operation == '-') {
-          result = (num1 - num2).toString();
-        } else if (operation == 'x') {
-          result = (num1 * num2).toString();
-        } else if (operation == '/') {
-          result = (num1 / num2).toString();
-        }
-
-        // Formatear el resultado para que solo muestre decimales cuando sea necesario
-        result = _formatNumber(double.parse(result));
-
-        history += ' ' +
-            _formatNumber(num2) +
-            ' = ' +
-            result; // Actualiza el historial
-        input = result;
-        num1 = 0;
-        num2 = 0;
-        operation = '';
+        _evaluateExpression();
+      } else {
+        _handleOperatorAndNumberInput(buttonText);
       }
+
+      _adjustFontSize();
+      _scrollToEnd();
     });
   }
 
-  // Función para formatear los números correctamente
-  String _formatNumber(double number) {
-    NumberFormat formatter;
-
-    // Si el número es entero, no mostrar decimales
-    if (number == number.toInt()) {
-      formatter = NumberFormat('#,##0'); // Sin decimales
-    } else {
-      formatter = NumberFormat('#,##0.####'); // Hasta 4 decimales
-    }
-
-    return formatter.format(number);
+  void _resetCalculator() {
+    input = '';
+    history = '';
+    hasError = false;
+    isDecimalUsed = false;
+    isOperatorPressed = false;
   }
 
-  Widget calcbutton(String btntxt, Color btncolor, Color txtcolor) {
-    return ElevatedButton(
-      onPressed: () => buttonPressed(btntxt),
-      style: ElevatedButton.styleFrom(
-        shape: const CircleBorder(),
-        backgroundColor: btncolor,
-        padding: const EdgeInsets.all(20),
-      ),
-      child: Text(
-        btntxt,
-        style: TextStyle(fontSize: 35, color: txtcolor),
+  void _deleteLastCharacter() {
+    if (input.isNotEmpty) {
+      if (input.endsWith('.')) {
+        isDecimalUsed = false;
+      }
+      input = input.substring(0, input.length - 1);
+    }
+  }
+
+  void _handleDecimalInput() {
+    if (!isDecimalUsed) {
+      input += '.';
+      isDecimalUsed = true;
+    }
+  }
+
+  void _handleOperatorAndNumberInput(String buttonText) {
+    if (operators.contains(buttonText)) {
+      if (input.isEmpty || isOperatorPressed) {
+        return;
+      }
+      _evaluateExpression();
+      input += buttonText;
+      isOperatorPressed = true;
+      isDecimalUsed = false;
+    } else {
+      input += buttonText;
+      isOperatorPressed = false;
+    }
+  }
+
+  void _evaluateExpression() {
+    try {
+      String finalInput = input.replaceAll('x', '*').replaceAll('%', '/100');
+      Parser parser = Parser();
+      Expression exp = parser.parse(finalInput);
+      ContextModel cm = ContextModel();
+      double eval = exp.evaluate(EvaluationType.REAL, cm);
+
+      setState(() {
+        history = input;
+        input = _formatResult(eval);
+        if (input.endsWith(".0")) {
+          input = input.substring(0, input.length - 2);
+        }
+        isOperatorPressed = false;
+      });
+    } catch (e) {
+      setState(() {
+        input = "Error";
+        hasError = true;
+      });
+    }
+  }
+
+  String _formatResult(double result) {
+    if (result.toString().contains('e')) {
+      return result.toStringAsExponential(2);
+    } else if (result == result.toInt()) {
+      return result.toInt().toString();
+    } else {
+      return result.toStringAsFixed(8);
+    }
+  }
+
+  void _adjustFontSize() {
+    if (input.length > 10) {
+      fontSize = 80 - (input.length - 10) * 2;
+      if (fontSize < 20) fontSize = 20;
+    } else {
+      fontSize = 80;
+    }
+  }
+
+  void _scrollToEnd() {
+    _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+  }
+
+  Widget calcButton(String btntxt, Color btncolor, Color txtcolor,
+      {double btnWidth = 70, double fontSize = 28}) {
+    return SizedBox(
+      width: btnWidth,
+      child: ElevatedButton(
+        onPressed: () => buttonPressed(btntxt),
+        style: ElevatedButton.styleFrom(
+          shape: const CircleBorder(),
+          padding: const EdgeInsets.all(20),
+          backgroundColor: btncolor,
+          elevation: 5,
+          shadowColor: Colors.grey,
+        ),
+        child: Text(
+          btntxt,
+          style: TextStyle(fontSize: fontSize, color: txtcolor),
+        ),
       ),
     );
   }
@@ -110,94 +151,113 @@ class _CalculadoraMState extends State<CalculadoraM> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: const Color.fromARGB(255, 197, 235, 248),
       appBar: AppBar(
-        title: const Text('Calculadora'),
+        title: const Text('Calculadora Pro Estilo iOS'),
         backgroundColor: Colors.black,
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 5),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            // Muestra el historial de la operación
-            Row(
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.05,
+              child: Image.asset(
+                'assets/logo-v2.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
+                Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Text(
                     history,
-                    textAlign: TextAlign.left,
-                    style: const TextStyle(color: Colors.white, fontSize: 30),
+                    style: const TextStyle(fontSize: 24, color: Colors.grey),
                   ),
                 ),
-              ],
-            ),
-            // Muestra el valor actual en pantalla
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Text(
-                    input,
-                    textAlign: TextAlign.left,
-                    style: const TextStyle(color: Colors.white, fontSize: 100),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    alignment: Alignment.bottomRight,
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      scrollDirection: Axis.vertical,
+                      reverse: true,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            input.isEmpty ? '0' : input,
+                            style: TextStyle(
+                                fontSize: fontSize, color: Colors.black),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    calcButton('AC', Colors.redAccent, Colors.white,
+                        fontSize:
+                            20), // Ajusté el tamaño de la fuente para "AC"
+                    calcButton('C', Colors.grey.shade700, Colors.white),
+                    calcButton('/', Colors.blueAccent, Colors.white),
+                    calcButton('x', Colors.blueAccent, Colors.white),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    calcButton('7', Colors.grey.shade800, Colors.white),
+                    calcButton('8', Colors.grey.shade800, Colors.white),
+                    calcButton('9', Colors.grey.shade800, Colors.white),
+                    calcButton('%', Colors.blueAccent, Colors.white),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    calcButton('4', Colors.grey.shade800, Colors.white),
+                    calcButton('5', Colors.grey.shade800, Colors.white),
+                    calcButton('6', Colors.grey.shade800, Colors.white),
+                    calcButton('-', Colors.blueAccent, Colors.white),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    calcButton('1', Colors.grey.shade800, Colors.white),
+                    calcButton('2', Colors.grey.shade800, Colors.white),
+                    calcButton('3', Colors.grey.shade800, Colors.white),
+                    calcButton('+', Colors.blueAccent, Colors.white),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    calcButton('0', Colors.grey.shade800, Colors.white,
+                        btnWidth: 160),
+                    calcButton('.', Colors.grey.shade800, Colors.white),
+                    calcButton('=', Colors.greenAccent, Colors.white),
+                  ],
+                ),
+                const SizedBox(height: 20),
               ],
             ),
-            // Botones de la calculadora
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                calcbutton('AC', Colors.grey, Colors.black),
-                calcbutton('+/-', Colors.grey, Colors.black),
-                calcbutton('%', Colors.grey, Colors.black),
-                calcbutton('/', Colors.amber, Colors.white),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                calcbutton('7', Colors.grey, Colors.black),
-                calcbutton('8', Colors.grey, Colors.black),
-                calcbutton('9', Colors.grey, Colors.black),
-                calcbutton('x', Colors.amber, Colors.white),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                calcbutton('4', Colors.grey, Colors.black),
-                calcbutton('5', Colors.grey, Colors.black),
-                calcbutton('6', Colors.grey, Colors.black),
-                calcbutton('-', Colors.amber, Colors.white),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                calcbutton('1', Colors.grey, Colors.black),
-                calcbutton('2', Colors.grey, Colors.black),
-                calcbutton('3', Colors.grey, Colors.black),
-                calcbutton('+', Colors.amber, Colors.white),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                calcbutton('0', Colors.grey, Colors.black),
-                calcbutton('=', Colors.amber, Colors.white),
-              ],
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:supcalculadora/Perfil/perfil.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:supcalculadora/historial%20/historial.dart';
+import 'package:supcalculadora/historial/historial.dart';
 import 'package:supcalculadora/logins-registros/login_screen.dart';
 
 class Configuraciones extends StatelessWidget {
