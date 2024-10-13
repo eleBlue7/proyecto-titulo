@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:supcalculadora/Perfil/perfil.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supcalculadora/historial/historial.dart';
 import 'package:supcalculadora/logins-registros/login_screen.dart';
 
 class Configuraciones extends StatelessWidget {
@@ -36,11 +37,18 @@ class Configuraciones extends StatelessWidget {
                 ),
                 const Divider(),
                 const ListTile(
-                  title: Text("Vacio"),
+                  title: Text("Historial"),
                 ),
                 ListTile(
-                  title: const Text("vacio"),
-                  onTap: () {},
+                  title: const Text("Historiales"),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HistorialScreen(),
+                      ),
+                    );
+                  },
                 ),
                 ListTile(
                   title: const Text("vacio"),
