@@ -1,16 +1,11 @@
-// ignore_for_file: use_build_context_synchronously, unused_local_variable, depend_on_referenced_packages, unused_import, sort_child_properties_last
-
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Importa Firebase Firestore
-import 'package:path_provider/path_provider.dart'; // Para guardar en local
-import 'dart:io'; // Para trabajar con archivos
-import 'dart:convert'; // Para la conversión a JSON
-import 'package:supcalculadora/historial/historial.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart'; // Para formatear la fecha
 
 void requestPermissions() async {
   await Permission.microphone.request();
@@ -41,15 +36,19 @@ class CalDeVoz extends StatefulWidget {
 
 class _CalDeVozState extends State<CalDeVoz> {
   SpeechToText speechToText = SpeechToText();
-  List<Product> products = [];  var text = "Presiona el botón para dictar productos y precios";
+  List<Product> products = [];
+  var text = "Presiona el botón para dictar productos y precios";
   var isListening = false;
   bool isSpeechProcessed = false;
+  List<Map<String, dynamic>> historialList = [];
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   @override
   void initState() {
     super.initState();
     requestPermissions();
     _setFullScreenMode();
+    _loadHistorial(); // Cargar historial al iniciar la app
   }
 
   void _setFullScreenMode() {
@@ -92,155 +91,151 @@ class _CalDeVozState extends State<CalDeVoz> {
         .replaceAll('diez', '10');
   }
 
-// Función para eliminar productos localmente y mover a la papelera en Firebase
-  Future<void> deleteProductLocallyAndMoveToTrash(
-      String productId, Map<String, dynamic> productData) async {
-    try {
-      // Eliminar del almacenamiento local
-      await deleteProductFromLocalStorage(productId);
-
-      // Mover el producto eliminado a la papelera en Firebase
-      await moveProductToTrashInFirestore(productId, productData);
-
-      // Mostrar un mensaje de éxito
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                'Producto eliminado localmente y movido a la papelera en Firebase')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al eliminar producto: $e')),
-      );
-    }
-  }
-
-// Función para eliminar del almacenamiento local
-  Future<void> deleteProductFromLocalStorage(String productId) async {
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/historial.json');
-
-    if (await file.exists()) {
-      // Leer el contenido del archivo local
-      String contents = await file.readAsString();
-      List<dynamic> jsonData = jsonDecode(contents);
-
-      // Eliminar el producto con el productId
-      jsonData.removeWhere((product) => product['id'] == productId);
-
-      // Guardar de nuevo el archivo actualizado
-      await file.writeAsString(jsonEncode(jsonData));
-    }
-  }
-
-// Función para mover el producto a la "Papelera" en Firebase
-  Future<void> moveProductToTrashInFirestore(
-      String productId, Map<String, dynamic> productData) async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
+  Future<void> saveProductsToFirestore() async {
     User? user = FirebaseAuth.instance.currentUser;
     String userName = user?.displayName ?? 'UsuarioDesconocido';
 
-    // Mover el producto a la colección 'Papelera'
-    await firestore
-        .collection('Usuarios')
-        .doc(userName)
-        .collection('Papelera')
-        .doc(productId)
-        .set(productData);
+    DocumentReference userDoc = firestore.collection('Usuarios').doc(userName);
+    DocumentSnapshot snapshot = await userDoc.get();
+    int historialNumero = snapshot.exists && snapshot.data() != null
+        ? snapshot['siguientehistorial'] ?? 1
+        : 1;
 
-    // Eliminar el producto del historial original
-    await firestore
+    String customId = "Historial N°$historialNumero de $userName";
+    String currentDate =
+        DateFormat('dd-MM-yyyy | HH:mm').format(DateTime.now());
+
+    CollectionReference productsCollection = userDoc.collection('Historiales');
+    await productsCollection.doc(customId).set({
+      'Usuario': userName,
+      'Hora de guardado': FieldValue.serverTimestamp(),
+      'Total': getTotal(),
+      'Supermercado': '', // Inicialmente vacío, luego se actualizará
+      'Productos guardados': products.map((p) => p.toJson()).toList(),
+    });
+
+    await userDoc.set(
+        {'siguientehistorial': historialNumero + 1}, SetOptions(merge: true));
+
+    setState(() {
+      historialList.add({
+        'historialId': customId,
+        'date': currentDate,
+        'productos':
+            List<Map<String, dynamic>>.from(products.map((p) => p.toJson())),
+        'supermercado': '',
+        'total': getTotal(),
+      });
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Productos guardados en Firebase')),
+    );
+  }
+
+  // Función para actualizar el nombre del supermercado
+  Future<void> updateSupermercado(
+      String historialId, String supermercado) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    String userName = user?.displayName ?? 'UsuarioDesconocido';
+
+    DocumentReference userDoc = firestore.collection('Usuarios').doc(userName);
+    await userDoc.collection('Historiales').doc(historialId).update({
+      'Supermercado': supermercado,
+    });
+
+    setState(() {
+      // Actualizar el nombre del supermercado en el historial local
+      for (var historial in historialList) {
+        if (historial['historialId'] == historialId) {
+          historial['supermercado'] = supermercado;
+          break;
+        }
+      }
+    });
+  }
+
+  // Función para cargar el historial desde Firebase al iniciar
+  Future<void> _loadHistorial() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    String userName = user?.displayName ?? 'UsuarioDesconocido';
+
+    QuerySnapshot snapshot = await firestore
         .collection('Usuarios')
         .doc(userName)
         .collection('Historiales')
-        .doc(productId)
-        .delete();
+        .get();
+
+    setState(() {
+      historialList = snapshot.docs.map((doc) {
+        return {
+          'historialId': doc.id,
+          'date': DateFormat('dd-MM-yyyy | HH:mm')
+              .format((doc['Hora de guardado'] as Timestamp).toDate()),
+          'productos':
+              List<Map<String, dynamic>>.from(doc['Productos guardados']),
+          'supermercado': doc['Supermercado'],
+          'total': doc['Total'],
+        };
+      }).toList();
+    });
   }
 
-  Future<void> saveProductsLocallyAndFirestore() async {
-    try {
-      // Primero, guardar los productos en Firebase
-      await saveProductsToFirestore();
-
-      // Después, guardar los productos localmente
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/historial.json');
-
-      // Convertir los productos a JSON
-      List<Map<String, dynamic>> productList =
-          products.map((product) => product.toJson()).toList();
-      String jsonProducts = jsonEncode(productList);
-
-      // Guardar el archivo localmente
-      await file.writeAsString(jsonProducts);
-
-      // Mostrar solo un mensaje de éxito después de completar ambas funciones
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Guardado!')),
-      );
-    } catch (e) {
-      // Mostrar un mensaje de error si ocurre algún problema en cualquiera de las operaciones
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar: $e')),
-      );
-    }
-  }
-
-  Future<void> saveProductsToFirestore() async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-    try {
-      // Obtener el usuario autenticado y su nombre
-      User? user = FirebaseAuth.instance.currentUser;
-      String userName = user?.displayName ??
-          'UsuarioDesconocido'; // Si no hay nombre, usar un valor por defecto
-      String userId = user?.uid ??
-          'uidDesconocido'; // Obtener el UID del usuario para referencias únicas
-
-      // Referencia al documento del usuario en Firestore
-      DocumentReference userDoc = firestore
-          .collection('Usuarios')
-          .doc(userName); // Usa el nombre del usuario como ID
-
-      // Leer el número de historial actual para este usuario
-      DocumentSnapshot snapshot = await userDoc.get();
-
-      int historialNumero =
-          1; // Valor por defecto si no existe el contador para el usuario
-
-      if (snapshot.exists && snapshot.data() != null) {
-        historialNumero = snapshot['siguientehistorial'] ??
-            1; // Lee el último número de historial del usuario
-      }
-
-      // Crear el nuevo ID para el historial en la subcolección "Historiales" del usuario
-      String customId = "Historial N°$historialNumero de $userName";
-
-      // Guardar el nuevo historial en la subcolección "Historiales" dentro del documento del usuario
-      CollectionReference productsCollection =
-          userDoc.collection('Historiales'); // Subcolección
-      await productsCollection.doc(customId).set({
-        'Usuario': userName, // Guardar el nombre del usuario
-        'Hora de guardado': FieldValue.serverTimestamp(),
-        'Total': getTotal(),
-        'Productos guardados':
-            products.map((product) => product.toJson()).toList(),
-      });
-
-      // Incrementar el número del historial solo para este usuario y actualizar el valor en Firestore
-      await userDoc.set({
-        'siguientehistorial': historialNumero +
-            1, // Incrementar el contador solo para este usuario
-      }, SetOptions(merge: true));
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar productos en Firebase: $e')),
-      );
-    }
-  }
- @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Color(0xFF6D6DFF),
+              ),
+              child: Text(
+                'Historiales de Productos',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            // Mostrar los historiales guardados
+            for (var historial in historialList)
+              ListTile(
+                title:
+                    Text('${historial['date']} | ${historial['supermercado']}'),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () {
+                    setState(() {
+                      historialList.remove(historial);
+                    });
+                    // Aquí también puedes agregar código para eliminar el historial de Firebase
+                  },
+                ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HistorialScreen(
+                        historialId: historial['historialId'],
+                        productos: historial['productos'],
+                        date: historial['date'],
+                        total: historial['total'],
+                        supermercado: historial['supermercado'],
+                        onSupermercadoUpdated: (supermercado) {
+                          updateSupermercado(
+                              historial['historialId'], supermercado);
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: AvatarGlow(
         animate: isListening,
@@ -258,7 +253,8 @@ class _CalDeVozState extends State<CalDeVoz> {
                     onResult: (result) {
                       setState(() {
                         if (result.recognizedWords.isNotEmpty) {
-                          List<String> words = result.recognizedWords.split(" ");
+                          List<String> words =
+                              result.recognizedWords.split(" ");
                           if (words.length == 2) {
                             String productName =
                                 words.sublist(0, words.length - 1).join(" ");
@@ -302,7 +298,16 @@ class _CalDeVozState extends State<CalDeVoz> {
         ),
       ),
       appBar: AppBar(
-        leading: const Icon(Icons.sort_rounded, color: Colors.white),
+        leading: Builder(
+          builder: (BuildContext context) {
+            return IconButton(
+              icon: const Icon(Icons.sort_rounded, color: Colors.white),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            );
+          },
+        ),
         centerTitle: true,
         backgroundColor: const Color(0xFF6D6DFF),
         elevation: 0.0,
@@ -316,7 +321,7 @@ class _CalDeVozState extends State<CalDeVoz> {
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
-            onPressed: saveProductsLocallyAndFirestore,
+            onPressed: saveProductsToFirestore,
           )
         ],
       ),
@@ -403,6 +408,82 @@ class _CalDeVozState extends State<CalDeVoz> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// Nueva pantalla para ver los productos de un historial
+class HistorialScreen extends StatefulWidget {
+  final String historialId;
+  final List<Map<String, dynamic>> productos;
+  final String date;
+  final int total;
+  final String supermercado;
+  final Function(String) onSupermercadoUpdated;
+
+  const HistorialScreen({
+    Key? key,
+    required this.historialId,
+    required this.productos,
+    required this.date,
+    required this.total,
+    required this.supermercado,
+    required this.onSupermercadoUpdated,
+  }) : super(key: key);
+
+  @override
+  _HistorialScreenState createState() => _HistorialScreenState();
+}
+
+class _HistorialScreenState extends State<HistorialScreen> {
+  late TextEditingController _supermercadoController;
+
+  @override
+  void initState() {
+    super.initState();
+    _supermercadoController = TextEditingController(text: widget.supermercado);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Historial ${widget.date}"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: _supermercadoController,
+              decoration: const InputDecoration(
+                labelText: 'Nombre del supermercado',
+                border: OutlineInputBorder(),
+              ),
+              onSubmitted: (value) {
+                widget.onSupermercadoUpdated(value);
+              },
+            ),
+            const SizedBox(height: 20),
+            const Text('Productos comprados:'),
+            Expanded(
+              child: ListView.builder(
+                itemCount: widget.productos.length,
+                itemBuilder: (context, index) {
+                  final product = widget.productos[index];
+                  return ListTile(
+                    title: Text(product['Nombre del producto']),
+                    subtitle: Text('\$${product['Precio']}'),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text('Total: \$${widget.total}'),
+          ],
+        ),
       ),
     );
   }
