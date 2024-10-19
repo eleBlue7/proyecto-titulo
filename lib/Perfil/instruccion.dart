@@ -14,22 +14,22 @@ class _InstructionScreenState extends State<InstructionScreen> {
       appBar: AppBar(
         title: const Text("Instrucciones de Uso"),
       ),
-      body: Padding(
-       padding: const EdgeInsets.all(16.0),
+      body: const Padding(
+       padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               "Instrucciones de Uso",
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 20), // Espacio entre el título y el contenido
+            SizedBox(height: 20), // Espacio entre el título y el contenido
 
             // Puedes agregar aquí más instrucciones o widgets
-            const Text(
+            Text(
               "1. Para empezar a usar la aplicación, primero inicia sesión con tu cuenta.\n"
               "2. Navega por el menú principal para acceder a las diferentes funcionalidades.\n"
               "3. Cambia tu perfil desde la sección de ajustes.\n"
@@ -38,8 +38,8 @@ class _InstructionScreenState extends State<InstructionScreen> {
                 fontSize: 16,
               ),
             ),
-            const SizedBox(height: 10),
-            const Text(
+            SizedBox(height: 10),
+            Text(
               "Si tienes alguna duda, consulta la sección de ayuda o contacta con el soporte técnico.",
               style: TextStyle(
                 fontSize: 16,

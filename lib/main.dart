@@ -3,7 +3,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:supcalculadora/calculadoras/calculadora_voz.dart';
 import 'package:supcalculadora/logins-registros/login_screen.dart';
 import 'package:supcalculadora/screens/splash_screen.dart'; // Asegúrate de usar la pantalla de carga
 import 'firebase/firebase_options.dart';
