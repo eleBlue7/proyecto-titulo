@@ -38,7 +38,7 @@ dependencies:
   avatar_glow: ^3.0.1   # librería para el efecto de brillo en el avatar
 
   path_provider: ^2.0.11
-  
+
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -64,5 +64,12 @@ flutter:
   assets:
     - assets/logo-v2.png # logo de la app
     - assets/sounds/splash_sound.mp3 # sonido de la app
+    #Fotos de la elección de supermercado
+    - assets/jumbo.png
+    - assets/lider.png
+    - assets/santa_isabel.png
+    - assets/unimarc.png
+    - assets/goku.png
+    - assets/perro.png
 
   uses-material-design: true

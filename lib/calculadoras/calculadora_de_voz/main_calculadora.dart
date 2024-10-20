@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'reconocimiento_de_voz.dart';
@@ -5,7 +6,9 @@ import 'modelo_producto.dart';
 import 'guardado_firebase.dart';
 
 class CalDeVoz extends StatefulWidget {
-  const CalDeVoz({super.key});
+  final String supermarket; // Añadimos el supermercado como parámetro
+
+  const CalDeVoz({super.key, required this.supermarket});
 
   @override
   State<CalDeVoz> createState() => _CalDeVozState();
@@ -16,7 +19,7 @@ class _CalDeVozState extends State<CalDeVoz> {
   var text = "Presiona el botón para dictar productos y precios";
   bool isListening = false;
 
-// Función para capitalizar la primera letra de una cadena
+  // Función para capitalizar la primera letra de una cadena
   String capitalizeFirstLetter(String text) {
     if (text.isEmpty) {
       return text; // Si el texto está vacío, lo devuelve sin cambios
@@ -46,13 +49,11 @@ class _CalDeVozState extends State<CalDeVoz> {
                     // Capitaliza la primera letra del nombre del producto
                     product.nombre = capitalizeFirstLetter(product.nombre);
                     products.add(product);
-                    text =
-                        "Producto ingresado!";
+                    text = "Producto ingresado!";
                   });
                 } else {
                   setState(() {
-                    text =
-                        "No se reconoció un producto válido. Intente nuevamente.";
+                    text = "No se reconoció un producto válido. Intente nuevamente.";
                   });
                 }
               });
@@ -68,8 +69,7 @@ class _CalDeVozState extends State<CalDeVoz> {
           child: CircleAvatar(
             backgroundColor: const Color(0xFF6D6DFF),
             radius: 35,
-            child: Icon(isListening ? Icons.mic : Icons.mic_none,
-                color: Colors.white),
+            child: Icon(isListening ? Icons.mic : Icons.mic_none, color: Colors.white),
           ),
         ),
       ),
@@ -86,15 +86,13 @@ class _CalDeVozState extends State<CalDeVoz> {
             icon: const Icon(Icons.save),
             onPressed: () {
               if (products.isNotEmpty) {
-                saveProductsToFirestore(products);
+                saveProductsToFirestore(products, widget.supermarket); // Pasamos el supermercado al guardar
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Historial guardado!')),
+                  const SnackBar(content: Text('Historial guardado!')),
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('No hay productos para guardar')),
+                  const SnackBar(content: Text('No hay productos para guardar')),
                 );
               }
             },
@@ -126,8 +124,7 @@ class _CalDeVozState extends State<CalDeVoz> {
           ),
           Center(
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,

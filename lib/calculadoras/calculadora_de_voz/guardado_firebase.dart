@@ -1,9 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'modelo_producto.dart';
+import 'package:intl/intl.dart';
 
-// Función para guardar los productos en Firestore con el usuario autenticado
-Future<void> saveProductsToFirestore(List<Product> products) async {
+// Función para guardar los productos en Firestore con el usuario autenticado y el supermercado
+Future<void> saveProductsToFirestore(List<Product> products, String supermarket) async {
   try {
     // Obtener el usuario autenticado
     User? user = FirebaseAuth.instance.currentUser;
@@ -21,32 +22,26 @@ Future<void> saveProductsToFirestore(List<Product> products) async {
     // Referencia a la colección del usuario autenticado
     DocumentReference userDoc = firestore.collection('Usuarios').doc(userName);
 
-    // Verificar el número del siguiente historial
-    DocumentSnapshot snapshot = await userDoc.get();
-    int historialNumero = snapshot.exists && snapshot.data() != null
-        ? snapshot['siguientehistorial'] ?? 1
-        : 1;
+   // Obtener la fecha y hora actual
+    DateTime now = DateTime.now();
+
+    // Formatear la fecha y hora como "día-mes-año" y "hora:minutos"
+    String formattedDate = DateFormat('dd-MM-yyyy').format(now);
+    String formattedTime = DateFormat('HH:mm').format(now);
 
     // Definir el ID personalizado para el historial
-    String customId = "Historial N°$historialNumero de $userName";
+    String customId = "Día $formattedDate a las $formattedTime";
+    // Crear una nueva colección para el supermercado si no existe y añadir el historial
+    CollectionReference productsCollection = userDoc.collection(supermarket);
 
-    // Crear un nuevo historial con los productos actuales
-    CollectionReference productsCollection = userDoc.collection('Historiales');
-
-    // Guardar el historial en Firestore
+    // Guardar el historial en Firestore dentro de la colección del supermercado
     await productsCollection.doc(customId).set({
-
       'Hora de guardado': FieldValue.serverTimestamp(),
       'Total': products.fold(0, (total, product) => total + product.precio),
       'Productos guardados': products.map((p) => p.toJson()).toList(),
     });
 
-    // Actualizar el siguiente número de historial
-    await userDoc.set({
-      'siguientehistorial': historialNumero + 1
-    }, SetOptions(merge: true));
-
-    print("Historial guardado!");
+    print("Historial guardado en $supermarket!");
   } catch (e) {
     print("Error al guardar productos en Firestore: $e");
   }

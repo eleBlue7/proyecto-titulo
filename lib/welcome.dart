@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:supcalculadora/Perfil/perfil.dart';
+import 'package:supcalculadora/calculadoras/calculadora_de_voz/supermercado.dart';
 
 import 'package:supcalculadora/calculadoras/calculadora_manual.dart';
 import 'package:supcalculadora/Configuraciones/configuraciones.dart';
 
-import 'calculadoras/calculadora_de_voz/main_calculadora.dart';
 
 class Welcome extends StatefulWidget {
   const Welcome({super.key});
@@ -165,7 +165,7 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const CalDeVoz(),
+                          builder: (context) => const SupermarketSelection(),
                         ),
                       );
                     },
