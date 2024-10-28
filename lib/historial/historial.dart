@@ -1,210 +1,189 @@
-// ignore_for_file: use_build_context_synchronously, library_private_types_in_public_api, depend_on_referenced_packages
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Importar FirebaseAuth para obtener el usuario autenticado
 
-class HistorialScreen extends StatefulWidget {
-  const HistorialScreen({super.key});
-
+class Historial extends StatefulWidget {
   @override
-  _HistorialScreenState createState() => _HistorialScreenState();
+  _HistorialState createState() => _HistorialState();
 }
 
-class _HistorialScreenState extends State<HistorialScreen> {
-  String searchQuery = ""; // Variable para almacenar el texto de búsqueda
-  TextEditingController searchController = TextEditingController();
+class _HistorialState extends State<Historial> {
+  String? selectedSupermarket;
+  String? userName; // Para almacenar el displayName del usuario autenticado
+
+  @override
+  void initState() {
+    super.initState();
+    // Obtener el displayName del usuario autenticado
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      userName = user.displayName ?? 'UsuarioDesconocido'; // Guardamos el displayName del usuario
+    } else {
+      // Manejar el caso en que no haya usuario autenticado
+      print("No hay usuario autenticado.");
+    }
+  }
+
+  // Función para seleccionar un supermercado y mostrar sus historiales
+  void selectSupermarket(String supermarket) {
+    setState(() {
+      selectedSupermarket = supermarket;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Obtener el usuario actual autenticado
-    User? user = FirebaseAuth.instance.currentUser;
-    String userName = user?.displayName ?? 'UsuarioDesconocido';
-
-    // Referencia a la colección "Historiales" del usuario actual en Firestore
-    CollectionReference historial = FirebaseFirestore.instance
-        .collection('Usuarios')
-        .doc(userName)
-        .collection('Historiales');
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Historiales"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // Mostrar el campo de búsqueda cuando se presiona la lupa
-              showSearchDialog(context);
-            },
-          ),
-        ],
+        title: const Text('Historial de Compras'),
+        centerTitle: true,
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: historial.snapshots(), // Escuchar cambios en tiempo real
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          // Mostrar error si lo hay
-          if (snapshot.hasError) {
-            return const Center(
-              child: Text("Error al cargar el historial"),
-            );
-          }
+      body: selectedSupermarket == null
+          ? buildSupermarketSelection() // Mostrar selección de supermercados si aún no se seleccionó uno
+          : buildHistorialList(selectedSupermarket!), // Mostrar los historiales de un supermercado
+    );
+  }
 
-          // Mostrar indicador de carga mientras se obtienen los datos
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+  // Construir la pantalla de selección de supermercados
+  Widget buildSupermarketSelection() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text(
+          'Seleccione un supermercado para ver los historiales:',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 20),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 20,
+          runSpacing: 20,
+          children: [
+            buildSupermarketOption('Líder', 'assets/lider.png'),
+            buildSupermarketOption('Jumbo', 'assets/jumbo.png'),
+            buildSupermarketOption('Santa Isabel', 'assets/santa_isabel.png'),
+            buildSupermarketOption('Unimarc', 'assets/unimarc.png'),
+          ],
+        ),
+      ],
+    );
+  }
 
-          // Si no hay productos en el historial
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text("No hay historiales."));
-          }
+  // Widget para construir las opciones de supermercado
+  Widget buildSupermarketOption(String name, String assetPath) {
+    return GestureDetector(
+      onTap: () => selectSupermarket(name),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: selectedSupermarket == name ? Colors.green : Colors.grey,
+            width: 2,
+          ),
+        ),
+        child: Column(
+          children: [
+            Image.asset(assetPath, width: 100, height: 100), // Imagen del supermercado
+            const SizedBox(height: 8),
+            Text(name, style: const TextStyle(fontSize: 16)),
+          ],
+        ),
+        padding: const EdgeInsets.all(10),
+      ),
+    );
+  }
 
-          // Filtrar los historiales según el texto de búsqueda
-          var filteredDocs = snapshot.data!.docs.where((doc) {
-            String historialName = doc.id.toLowerCase();
-            return historialName.contains(searchQuery.toLowerCase());
-          }).toList();
+  // Construir la lista de historiales de un supermercado seleccionado
+  Widget buildHistorialList(String supermarket) {
+    if (userName == null) {
+      return const Center(child: Text('No se pudo obtener el usuario autenticado.'));
+    }
 
-          // Mostrar lista de historiales
-          return ListView(
-            children: filteredDocs.map((DocumentSnapshot document) {
-              // Obtener los datos del documento
-              Map<String, dynamic> data =
-                  document.data()! as Map<String, dynamic>;
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('Usuarios')
+          .doc(userName) // Usamos el displayName del usuario autenticado
+          .collection(supermarket) // Seleccionamos la colección del supermercado
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-              // Nombre del historial, por ejemplo, "Historial 1"
-              String historialName = document.id;
+        if (snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text('No hay historiales disponibles para este supermercado.'));
+        }
 
-              return ListTile(
-                title: Text(historialName),
-                trailing: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.red),
-                  onPressed: () async {
-                    // Confirmar eliminación
-                    bool? confirmDelete = await showDeleteConfirmation(context);
-                    if (confirmDelete == true) {
-                      // Eliminar historial de Firestore
-                      await historial.doc(document.id).delete();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Historial eliminado')),
-                      );
-                    }
-                  },
-                ),
+        return ListView.builder(
+          itemCount: snapshot.data!.docs.length,
+          itemBuilder: (context, index) {
+            var historial = snapshot.data!.docs[index];
+            var total = historial['Total'] ?? 0;
+            var hora = historial['Hora de guardado'];
+
+            return Card(
+              child: ListTile(
+                title: Text('Historial del día: $hora'),
+                subtitle: Text('Total: \$${total.toString()}'),
                 onTap: () {
-                  // Mostrar detalles del historial en un modal
+                  // Mostrar el modal con el contenido del historial
                   showModalBottomSheet(
                     context: context,
-                    builder: (BuildContext context) {
-                      return Container(
-                        padding: const EdgeInsets.all(16),
-                        height: MediaQuery.of(context).size.height * 0.75,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              historialName,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text("Hora de guardado: ${data['Hora de guardado']?.toDate()}"),
-                            const SizedBox(height: 8),
-                            Text("Total: ${data['Total']?.toString()}"),
-                            const SizedBox(height: 16),
-                            const Text(
-                              "Productos:",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Expanded(
-                              child: ListView.builder(
-                                itemCount: (data['Productos guardados'] as List).length,
-                                itemBuilder: (context, index) {
-                                  var product = data['Productos guardados'][index];
-                                  return ListTile(
-                                    title: Text(product['Nombre del producto']),
-                                    subtitle: Text("Precio: ${product['Precio']}"),
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-                        ),
-                      );
+                    builder: (context) {
+                      return buildHistorialModal(historial);
                     },
                   );
                 },
-              );
-            }).toList(),
-          );
-        },
-      ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
-  // Función para mostrar el diálogo de búsqueda
-  void showSearchDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Buscar Historial"),
-          content: TextField(
-            controller: searchController,
-            decoration: const InputDecoration(
-              hintText: "Escriba el nombre del historial...",
-            ),
-            onChanged: (value) {
-              setState(() {
-                searchQuery = value;
-              });
+  // Construir el modal para mostrar los detalles del historial
+  // Construir el modal para mostrar los detalles del historial
+Widget buildHistorialModal(QueryDocumentSnapshot historial) {
+  var productos = historial['Productos guardados'] as List<dynamic>;
+  var total = historial['Total'] ?? 0;
+  var hora = historial['Hora de guardado'];
+
+  return Container(
+    padding: const EdgeInsets.all(16),
+    height: 400,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Historial del día: $hora',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'Total: \$${total.toString()}',
+          style: const TextStyle(fontSize: 16),
+        ),
+        const SizedBox(height: 10),
+        const Text(
+          'Productos:',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
+        Expanded(
+          child: ListView.builder(
+            itemCount: productos.length,
+            itemBuilder: (context, index) {
+              var producto = productos[index];
+              return ListTile(
+                title: Text(producto['Nombre del producto'] ?? 'Sin nombre'), // Usar el nombre correcto del campo
+                trailing: Text('\$${producto['Precio']?.toString() ?? '0'}'), // Usar el nombre correcto del campo
+              );
             },
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text("Cerrar"),
-            ),
-          ],
-        );
-      },
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
-  // Función para confirmar la eliminación del historial
-  Future<bool?> showDeleteConfirmation(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Confirmar eliminación"),
-          content: const Text("¿Está seguro de que desea eliminar este historial?"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false); // Cancelar eliminación
-              },
-              child: const Text("Cancelar"),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(true); // Confirmar eliminación
-              },
-              child: const Text("Eliminar"),
-            ),
-          ],
-        );
-      },
-    );
-  }
 }

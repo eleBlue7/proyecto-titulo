@@ -45,7 +45,7 @@ class Configuraciones extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const HistorialScreen(),
+                        builder: (context) => Historial(),
                       ),
                     );
                   },
