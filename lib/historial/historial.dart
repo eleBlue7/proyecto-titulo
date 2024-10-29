@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Importar FirebaseAuth para obtener el usuario autenticado
+import 'package:intl/intl.dart'; // Para formatear la fecha y hora
 
 class Historial extends StatefulWidget {
   @override
@@ -63,6 +64,8 @@ class _HistorialState extends State<Historial> {
             buildSupermarketOption('Jumbo', 'assets/jumbo.png'),
             buildSupermarketOption('Santa Isabel', 'assets/santa_isabel.png'),
             buildSupermarketOption('Unimarc', 'assets/unimarc.png'),
+            buildSupermarketOption('Tottus', 'assets/tottus.png'),
+            buildSupermarketOption('Acuenta', 'assets/acuenta.png'),
           ],
         ),
       ],
@@ -80,6 +83,7 @@ class _HistorialState extends State<Historial> {
             width: 2,
           ),
         ),
+        padding: const EdgeInsets.all(10),
         child: Column(
           children: [
             Image.asset(assetPath, width: 100, height: 100), // Imagen del supermercado
@@ -87,7 +91,6 @@ class _HistorialState extends State<Historial> {
             Text(name, style: const TextStyle(fontSize: 16)),
           ],
         ),
-        padding: const EdgeInsets.all(10),
       ),
     );
   }
@@ -122,10 +125,11 @@ class _HistorialState extends State<Historial> {
 
             return Card(
               child: ListTile(
-                title: Text('Historial del día: $hora'),
+                title: Text(
+                  'Día ${formatTimestamp(hora)}', // Formatear el timestamp para la fecha
+                ),
                 subtitle: Text('Total: \$${total.toString()}'),
                 onTap: () {
-                  // Mostrar el modal con el contenido del historial
                   showModalBottomSheet(
                     context: context,
                     builder: (context) {
@@ -141,49 +145,59 @@ class _HistorialState extends State<Historial> {
     );
   }
 
-  // Construir el modal para mostrar los detalles del historial
-  // Construir el modal para mostrar los detalles del historial
-Widget buildHistorialModal(QueryDocumentSnapshot historial) {
-  var productos = historial['Productos guardados'] as List<dynamic>;
-  var total = historial['Total'] ?? 0;
-  var hora = historial['Hora de guardado'];
+  // Función para formatear el Timestamp a una fecha legible
+  String formatTimestamp(Timestamp timestamp) {
+    DateTime dateTime = timestamp.toDate();
+    return DateFormat('dd-MM-yyyy').format(dateTime); // Formato: día-mes-año
+  }
 
-  return Container(
-    padding: const EdgeInsets.all(16),
-    height: 400,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Historial del día: $hora',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          'Total: \$${total.toString()}',
-          style: const TextStyle(fontSize: 16),
-        ),
-        const SizedBox(height: 10),
-        const Text(
-          'Productos:',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 10),
-        Expanded(
-          child: ListView.builder(
-            itemCount: productos.length,
-            itemBuilder: (context, index) {
-              var producto = productos[index];
-              return ListTile(
-                title: Text(producto['Nombre del producto'] ?? 'Sin nombre'), // Usar el nombre correcto del campo
-                trailing: Text('\$${producto['Precio']?.toString() ?? '0'}'), // Usar el nombre correcto del campo
-              );
-            },
+  // Función para formatear el Timestamp a una hora legible
+  String formatTime(Timestamp timestamp) {
+    DateTime dateTime = timestamp.toDate();
+    return DateFormat('HH:mm').format(dateTime); // Formato: horas:minutos
+  }
+
+  // Construir el modal para mostrar los detalles del historial
+  Widget buildHistorialModal(QueryDocumentSnapshot historial) {
+    var productos = historial['Productos guardados'] as List<dynamic>;
+    var total = historial['Total'] ?? 0;
+    var hora = historial['Hora de guardado'];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      height: 400,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Ingresado a las ${formatTime(hora)}', // Mostrar fecha y hora formateadas
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-        ),
-      ],
-    ),
-  );
-}
-
+          const SizedBox(height: 10),
+          Text(
+            'Total: \$${total.toString()}',
+            style: const TextStyle(fontSize: 16),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'Productos:',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: ListView.builder(
+              itemCount: productos.length,
+              itemBuilder: (context, index) {
+                var producto = productos[index];
+                return ListTile(
+                  title: Text(producto['Nombre del producto'] ?? 'Sin nombre'), // Usar el nombre correcto del campo
+                  trailing: Text('\$${producto['Precio']?.toString() ?? '0'}'), // Usar el nombre correcto del campo
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

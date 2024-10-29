@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:supcalculadora/calculadoras/calculadora_de_voz/main_calculadora.dart';// Asegúrate de tener esta pantalla
+import 'package:supcalculadora/calculadoras/calculadora_manual/calculadora_manual.dart';// Asegúrate de tener esta pantalla
 
-class SupermarketSelection extends StatefulWidget {
-  const SupermarketSelection({super.key});
+class SupermarketSelection_manual extends StatefulWidget {
+  const SupermarketSelection_manual({super.key});
 
   @override
-  _SupermarketSelectionState createState() => _SupermarketSelectionState();
+  _SupermarketSelection_manualState createState() => _SupermarketSelection_manualState();
 }
 
-class _SupermarketSelectionState extends State<SupermarketSelection> {
+class _SupermarketSelection_manualState extends State<SupermarketSelection_manual> {
   String? selectedSupermarket; // Almacena el supermercado seleccionado
 
   // Función para seleccionar un supermercado
@@ -68,7 +68,7 @@ class _SupermarketSelectionState extends State<SupermarketSelection> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => CalDeVoz(supermarket: selectedSupermarket!),
+                            builder: (context) => CalculadoraM(supermarket: selectedSupermarket!),
                           ),
                         );
                       }

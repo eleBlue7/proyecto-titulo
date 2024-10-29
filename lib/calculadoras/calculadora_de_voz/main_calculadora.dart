@@ -83,7 +83,7 @@ class _CalDeVozState extends State<CalDeVoz> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.save),
+            icon: const Icon(Icons.save, color: Colors.white,),
             onPressed: () {
               if (products.isNotEmpty) {
                 saveProductsToFirestore(products, widget.supermarket); // Pasamos el supermercado al guardar

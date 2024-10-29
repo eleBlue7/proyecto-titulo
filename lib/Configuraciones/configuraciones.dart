@@ -25,7 +25,7 @@ class Configuraciones extends StatelessWidget {
                 ),
                 ListTile(
                   title: const Text("Perfil"),
-                  leading: const Icon(Icons.account_circle_outlined),
+                  leading: const Icon(Icons.account_circle_outlined,),
                   onTap: () {
                     Navigator.push(
                       context,

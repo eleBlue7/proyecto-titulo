@@ -71,5 +71,7 @@ flutter:
     - assets/unimarc.png
     - assets/goku.png
     - assets/perro.png
+    - assets/tottus.png
+    - assets/acuenta.png
 
   uses-material-design: true
