@@ -5,7 +5,6 @@ import 'package:supcalculadora/calculadoras/calculadora_de_voz/supermercado.dart
 import 'package:supcalculadora/Configuraciones/configuraciones.dart';
 import 'package:supcalculadora/calculadoras/calculadora_manual/seleccion_supermarket.dart';
 
-
 class Welcome extends StatefulWidget {
   const Welcome({super.key});
 
@@ -179,7 +178,8 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const SupermarketSelection_manual(),
+                          builder: (context) =>
+                              const SupermarketSelection_manual(),
                         ),
                       );
                     },

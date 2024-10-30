@@ -36,6 +36,8 @@ dependencies:
   curved_navigation_bar: ^1.0.3 # librería para la barra de navegación
   animated_text_kit: ^4.2.1 # librería para la animación de texto 
   avatar_glow: ^3.0.1   # librería para el efecto de brillo en el avatar
+  vibration: ^1.7.4  # Paquete para la vibración del celular
+  fluttertoast: ^8.0.8 # Paquete para mostrar mensajes emergentes
 
   path_provider: ^2.0.11
 
