@@ -1,0 +1,54 @@
+* [33m0e20d5c[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Se añaden 2 nuevos supermercados, se actualiza las vistas de seleccion de supermercados y se agrega la calculadora manual funcionando correctamente
+* [33mdffbcc2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m 24-Historial agregado
+* [33m6a635cb[m 23-Seleccion de supermercado y cambio de estructura firestore
+* [33m312fcf9[m 22-Ramificacion de la calculadora de voz en distintos componentes, para mayor orden
+* [33m750e696[m 21- Funcion nueva de historial, guarda los datos y registra supermercado
+*   [33mc5d0267[m Se añaden cambios en el perfil y se soluciona el error con las imagen del perfil
+[32m|[m[33m\[m  
+[32m|[m *   [33m0200f25[m 19 fusion ele + pipe
+[32m|[m [34m|[m[35m\[m  
+[32m|[m [34m|[m * [33mdfd4ed6[m XX. Cambios nuevos: Nombre app,screen splash, logo splash,sonido splash, logo welcom, style welcome,style botones calculadora, style calculadora de voz, cambio de nombres y centralizar texto en calculadora de voz, degrade calculadora de voz, funcionalidad de calculadora manual, funcionalidad  numerica manual, sstyle calculadora manual, entre otros cambios...(RECUPERACION DE LOS CAMBIOS)
+[32m|[m [34m|[m * [33m0d2a8c0[m Descripción de los cambios
+[32m|[m * [35m|[m [33m65134c7[m commit con el historial, se ve medio penca si XD flata diseño
+* [35m|[m [35m|[m [33medc9550[m Cambios en el perfil y solucion error foto perfil
+[35m|[m[35m/[m [35m/[m  
+* [35m|[m [33m0511270[m Merge branch 'main' of https://github.com/eleBlue7/proyecto-titulo
+[36m|[m[35m\[m[35m|[m 
+* [35m|[m [33m8dca41c[m 19- Se modifica la vista de perfil con mas funciones y se añaden dependencias
+[1;31m|[m [35m|[m * [33mcfe3edc[m[33m ([m[1;35mrefs/stash[m[33m)[m WIP on main: d83d400 18-(intento 2)Cambios esteticos v1.0 en welcome.dart y pubspec.yaml a si como un nuevo assets
+[1;31m|[m [35m|[m[35m/[m[1;33m|[m 
+[1;31m|[m [35m|[m * [33m2d3a624[m index on main: d83d400 18-(intento 2)Cambios esteticos v1.0 en welcome.dart y pubspec.yaml a si como un nuevo assets
+[1;31m|[m [35m|[m[35m/[m  
+[1;31m|[m * [33md83d400[m 18-(intento 2)Cambios esteticos v1.0 en welcome.dart y pubspec.yaml a si como un nuevo assets
+[1;31m|[m *   [33mb0f2e4e[m Merge remote-tracking branch 'origin'
+[1;31m|[m [1;34m|[m[1;35m\[m  
+[1;31m|[m [1;34m|[m * [33mef6cc02[m 17- se agregó la pestaña configuraciones
+[1;31m|[m [1;34m|[m[1;31m/[m  
+[1;31m|[m[1;31m/[m[1;34m|[m   
+[1;31m|[m * [33m5eb0a59[m 18-Cambios esteticos v1.0 en welcome.dart y pubspec.yaml a si como un nuevo assets
+[1;31m|[m[1;31m/[m  
+* [33m6d8ee66[m 16- FireStore supremo dios corregido
+* [33ma4470cb[m 15- Se corrige el título de la pantalla principal y el nombre de usuario se implementa al arriba al medio
+* [33m45d41d4[m 14-Nombre de usuario en pantalla principal y modificación menor
+* [33m5f21ccc[m 13- contador individual por cada usuario agregado
+* [33mbf1d507[m 12- firestore historial con tu nombre de usuario
+* [33m320c637[m 10-Commit supremo, todo fusionado, trabajar a partir de aquí
+*   [33m9744bc8[m Cambios en calculadora_manual.dart y pubspec.yaml pipe
+[1;36m|[m[31m\[m  
+[1;36m|[m *   [33mfa5a2dc[m 10- fusion ele + benja
+[1;36m|[m [32m|[m[33m\[m  
+[1;36m|[m * [33m|[m [33mbfd98b6[m 9-inicio de sesion mantenido, elimine las calculadores extras y cambie algo del firestore
+* [33m|[m [33m|[m   [33m91c34d6[m Merge branch 'main' of github.com:eleBlue7/proyecto-titulo
+[34m|[m[33m\[m [33m\[m [33m\[m  
+[34m|[m [33m|[m [33m|[m[33m/[m  
+[34m|[m [33m|[m[33m/[m[33m|[m   
+[34m|[m * [33m|[m [33mce3767e[m Se añaden prefix y subfix al inicio sesion, se agrega el nombre en el registro de usuario, se crea el apartado de perfil
+* [35m|[m [33m|[m [33m1641e7d[m Cambios en calculadora_manual.dart y pubspec.yaml
+[35m|[m[35m/[m [33m/[m  
+* [33m/[m [33mcfc3452[m Actualice pubspec.lock con nuevas dependencias
+[33m|[m[33m/[m  
+* [33mb1495b6[m 6-Corrección nombres y atributos del firebase
+* [33m1cc21af[m 5-Cambiamos los decimales a enteros en toda la calculadora
+* [33m0037692[m 4-cambios nombres firestore y funcion con producto/precio via voz
+* [33mdca5953[m 3- conexion firebase de productos hecha
+* [33mb6b7224[m primer commit

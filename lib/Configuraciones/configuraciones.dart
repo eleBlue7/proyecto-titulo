@@ -13,19 +13,36 @@ class Configuraciones extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Configuraciones"),
+        backgroundColor: Color(0xFF36bfed), // Color de la marca
+        title: const Text(
+          "Configuraciones",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: [
           Expanded(
             child: ListView(
               children: <Widget>[
-                const ListTile(
-                  title: Text("Cuenta"),
+                // Sección de cuenta
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: const Text(
+                    "Cuenta",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF36bfed), // Color de la marca
+                    ),
+                  ),
                 ),
                 ListTile(
                   title: const Text("Perfil"),
-                  leading: const Icon(Icons.account_circle_outlined,),
+                  leading: Icon(
+                    Icons.account_circle_outlined,
+                    color: Color(0xFF36bfed), // Color de la marca
+                  ),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -36,11 +53,25 @@ class Configuraciones extends StatelessWidget {
                   },
                 ),
                 const Divider(),
-                const ListTile(
-                  title: Text("Historial"),
+
+                // Sección de historial
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: const Text(
+                    "Historial",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF36bfed), // Color de la marca
+                    ),
+                  ),
                 ),
                 ListTile(
-                  title: const Text("Historiales"),
+                  title: const Text("Mis Compras"),
+                  leading: Icon(
+                    Icons.shopping_cart_outlined,
+                    color: Color(0xFF36bfed), // Icono con color de la marca
+                  ),
                   onTap: () {
                     Navigator.push(
                       context,
@@ -51,18 +82,31 @@ class Configuraciones extends StatelessWidget {
                   },
                 ),
                 ListTile(
-                  title: const Text("vacio"),
+                  title: const Text("Otros registros"),
+                  leading: Icon(
+                    Icons.list_alt,
+                    color: Colors.grey, // Color neutro para indicar vacío
+                  ),
                   onTap: () {},
                 ),
                 const Divider(),
-                const ListTile(
-                  title: Text("Otros"),
+
+                // Sección de otros
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: const Text(
+                    "Otros",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF36bfed), // Color de la marca
+                    ),
+                  ),
                 ),
                 ListTile(
                   title: const Text("Versión 0.17"),
-                  leading: const Icon(Icons.update),
+                  leading: const Icon(Icons.update, color: Colors.grey),
                   onTap: () {
-                    // Mostrar AlertDialog con la versión
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
@@ -86,11 +130,15 @@ class Configuraciones extends StatelessWidget {
                   title: const Text(
                     "Cerrar Sesión",
                     style: TextStyle(
-                      color: Colors.red, // Cambia el texto a color rojo
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
+                  leading: const Icon(
+                    Icons.logout,
+                    color: Colors.red,
+                  ),
                   onTap: () async {
-                    // Mostrar diálogo de confirmación antes de cerrar sesión
                     bool? confirmSignOut = await showDialog<bool>(
                       context: context,
                       builder: (BuildContext context) {
@@ -116,7 +164,6 @@ class Configuraciones extends StatelessWidget {
                       },
                     );
 
-                    // Si el usuario confirmó, cerrar sesión
                     if (confirmSignOut == true) {
                       await FirebaseAuth.instance.signOut();
                       Navigator.pushAndRemoveUntil(
