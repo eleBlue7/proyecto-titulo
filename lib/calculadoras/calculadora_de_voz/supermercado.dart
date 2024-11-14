@@ -28,10 +28,10 @@ class _SupermarketSelectionState extends State<SupermarketSelection> {
         centerTitle: true,
       ),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFF4B0082),
+              const Color(0xFF4B0082),
               Color.fromARGB(255, 197, 235, 248),
             ],
             begin: Alignment.topLeft,
@@ -53,7 +53,7 @@ class _SupermarketSelectionState extends State<SupermarketSelection> {
                 runSpacing: 20,
                 children: [
                   buildSupermarketOption('Jumbo', 'assets/jumbo.png'),
-                  buildSupermarketOption('Líder', 'assets/lider.png'),
+                  buildSupermarketOption('Lider', 'assets/lider.png'),
                   buildSupermarketOption('Santa Isabel', 'assets/santa_isabel.png'),
                   buildSupermarketOption('Unimarc', 'assets/unimarc.png'),
                   buildSupermarketOption('Tottus', 'assets/tottus.png'),

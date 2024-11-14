@@ -3,6 +3,9 @@ import 'modelo_producto.dart'; // Importa el modelo de producto
 
 SpeechToText speechToText = SpeechToText();
 
+// Variable para almacenar el supermercado seleccionado, pásala desde tu lógica principal
+String selectedSupermarket = "Lider"; // Cambia esto por el supermercado seleccionado en tu app
+
 // Función para comenzar a escuchar
 Future<void> startListening(Function(Product?) onProductRecognized) async {
   bool available = await speechToText.initialize();
@@ -17,9 +20,9 @@ Future<void> startListening(Function(Product?) onProductRecognized) async {
           int productPrice = int.tryParse(processedPrice) ?? 0;
 
           if (productPrice > 0) {
-            // Llamamos a la función de callback con el producto reconocido
-            onProductRecognized(Product(productName, productPrice));
-            stopListening(); // Detener la escucha una vez que se reconozca un producto válido
+            // Llamamos a la función de callback con el producto reconocido, incluyendo el supermercado
+            onProductRecognized(Product(productName, productPrice, selectedSupermarket));
+            stopListening(); // Detener la escucha una vez que se reconoce un producto válido
           } else {
             // No se reconoció un producto válido
             onProductRecognized(null);

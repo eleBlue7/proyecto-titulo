@@ -53,7 +53,7 @@ class _SupermarketSelection_manualState extends State<SupermarketSelection_manua
                 runSpacing: 20,
                 children: [
                   buildSupermarketOption('Jumbo', 'assets/jumbo.png'),
-                  buildSupermarketOption('Líder', 'assets/lider.png'),
+                  buildSupermarketOption('Lider', 'assets/lider.png'),
                   buildSupermarketOption('Santa Isabel', 'assets/santa_isabel.png'),
                   buildSupermarketOption('Unimarc', 'assets/unimarc.png'),
                   buildSupermarketOption('Tottus', 'assets/tottus.png'),

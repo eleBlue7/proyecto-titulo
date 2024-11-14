@@ -38,7 +38,7 @@ class _ConfiguracionesState extends State<Configuraciones> {
   void _onSmartSolutionsTap() async {
     final now = DateTime.now();
     if (_lastTapTime == null ||
-        now.difference(_lastTapTime!) > Duration(seconds: 1)) {
+        now.difference(_lastTapTime!) > const Duration(seconds: 1)) {
       _tapCount = 0;
     }
     _lastTapTime = now;
@@ -110,7 +110,7 @@ class _ConfiguracionesState extends State<Configuraciones> {
       child: Container(
         width: 300,
         height: 300,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage("assets/logo-v2.png"),
             fit: BoxFit.cover,
@@ -163,7 +163,7 @@ class _ConfiguracionesState extends State<Configuraciones> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF36bfed), // Color de la marca
+        backgroundColor: const Color(0xFF36bfed), // Color de la marca
         title: const Text(
           "Configuraciones",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
@@ -175,9 +175,9 @@ class _ConfiguracionesState extends State<Configuraciones> {
           Expanded(
             child: ListView(
               children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: const Text(
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(
                     "Cuenta",
                     style: TextStyle(
                       fontSize: 18,
@@ -188,7 +188,7 @@ class _ConfiguracionesState extends State<Configuraciones> {
                 ),
                 ListTile(
                   title: const Text("Perfil"),
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.account_circle_outlined,
                     color: Color(0xFF36bfed),
                   ),
@@ -202,9 +202,9 @@ class _ConfiguracionesState extends State<Configuraciones> {
                   },
                 ),
                 const Divider(),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: const Text(
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(
                     "Historial",
                     style: TextStyle(
                       fontSize: 18,
@@ -215,7 +215,7 @@ class _ConfiguracionesState extends State<Configuraciones> {
                 ),
                 ListTile(
                   title: const Text("Mis Compras"),
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.shopping_cart_outlined,
                     color: Color(0xFF36bfed),
                   ),
@@ -230,16 +230,16 @@ class _ConfiguracionesState extends State<Configuraciones> {
                 ),
                 ListTile(
                   title: const Text("Otros registros"),
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.list_alt,
                     color: Colors.grey,
                   ),
                   onTap: () {},
                 ),
                 const Divider(),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: const Text(
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(
                     "Otros",
                     style: TextStyle(
                       fontSize: 18,

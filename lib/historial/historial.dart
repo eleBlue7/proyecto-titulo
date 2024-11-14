@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // Importar FirebaseAuth para obtener el usuario autenticado
-import 'package:intl/intl.dart'; // Para formatear la fecha y hora
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 
 class Historial extends StatefulWidget {
   @override
@@ -10,22 +10,19 @@ class Historial extends StatefulWidget {
 
 class _HistorialState extends State<Historial> {
   String? selectedSupermarket;
-  String? userName; // Para almacenar el displayName del usuario autenticado
+  String? userName;
 
   @override
   void initState() {
     super.initState();
-    // Obtener el displayName del usuario autenticado
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      userName = user.displayName ?? 'UsuarioDesconocido'; // Guardamos el displayName del usuario
+      userName = user.displayName ?? 'UsuarioDesconocido';
     } else {
-      // Manejar el caso en que no haya usuario autenticado
       print("No hay usuario autenticado.");
     }
   }
 
-  // Función para seleccionar un supermercado y mostrar sus historiales
   void selectSupermarket(String supermarket) {
     setState(() {
       selectedSupermarket = supermarket;
@@ -40,12 +37,11 @@ class _HistorialState extends State<Historial> {
         centerTitle: true,
       ),
       body: selectedSupermarket == null
-          ? buildSupermarketSelection() // Mostrar selección de supermercados si aún no se seleccionó uno
-          : buildHistorialList(selectedSupermarket!), // Mostrar los historiales de un supermercado
+          ? buildSupermarketSelection()
+          : buildHistorialList(selectedSupermarket!),
     );
   }
 
-  // Construir la pantalla de selección de supermercados
   Widget buildSupermarketSelection() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -60,7 +56,7 @@ class _HistorialState extends State<Historial> {
           spacing: 20,
           runSpacing: 20,
           children: [
-            buildSupermarketOption('Líder', 'assets/lider.png'),
+            buildSupermarketOption('Lider', 'assets/lider.png'),
             buildSupermarketOption('Jumbo', 'assets/jumbo.png'),
             buildSupermarketOption('Santa Isabel', 'assets/santa_isabel.png'),
             buildSupermarketOption('Unimarc', 'assets/unimarc.png'),
@@ -72,7 +68,6 @@ class _HistorialState extends State<Historial> {
     );
   }
 
-  // Widget para construir las opciones de supermercado
   Widget buildSupermarketOption(String name, String assetPath) {
     return GestureDetector(
       onTap: () => selectSupermarket(name),
@@ -86,7 +81,7 @@ class _HistorialState extends State<Historial> {
         padding: const EdgeInsets.all(10),
         child: Column(
           children: [
-            Image.asset(assetPath, width: 100, height: 100), // Imagen del supermercado
+            Image.asset(assetPath, width: 100, height: 100),
             const SizedBox(height: 8),
             Text(name, style: const TextStyle(fontSize: 16)),
           ],
@@ -95,73 +90,74 @@ class _HistorialState extends State<Historial> {
     );
   }
 
-  // Construir la lista de historiales de un supermercado seleccionado
   Widget buildHistorialList(String supermarket) {
-    if (userName == null) {
-      return const Center(child: Text('No se pudo obtener el usuario autenticado.'));
-    }
+  if (userName == null) {
+    return const Center(
+        child: Text('No se pudo obtener el usuario autenticado.'));
+  }
 
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('Usuarios')
-          .doc(userName) // Usamos el displayName del usuario autenticado
-          .collection(supermarket) // Seleccionamos la colección del supermercado
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
+  return StreamBuilder<QuerySnapshot>(
+    stream: FirebaseFirestore.instance
+        .collection('Usuarios')
+        .doc(userName)
+        .collection('Historiales')
+        .snapshots(),
+    builder: (context, snapshot) {
+      if (!snapshot.hasData) {
+        return const Center(child: CircularProgressIndicator());
+      }
 
-        if (snapshot.data!.docs.isEmpty) {
-          return const Center(child: Text('No hay historiales disponibles para este supermercado.'));
-        }
+      // Filtrar los documentos para mostrar solo los historiales del supermercado seleccionado
+      var filteredDocs = snapshot.data!.docs.where((doc) {
+        var data = doc.data() as Map<String, dynamic>?;
+        return data != null && data['Supermercado'] == supermarket;
+      }).toList();
 
-        return ListView.builder(
-          itemCount: snapshot.data!.docs.length,
-          itemBuilder: (context, index) {
-            var historial = snapshot.data!.docs[index];
-            var total = historial['Total'] ?? 0;
-            var hora = historial['Hora de guardado'];
+      if (filteredDocs.isEmpty) {
+        return const Center(
+            child: Text(
+                'No hay historiales disponibles para este supermercado.'));
+      }
 
-            return Card(
-              child: ListTile(
-                title: Text(
-                  'Día ${formatTimestamp(hora)}', // Formatear el timestamp para la fecha
-                ),
-                subtitle: Text('Total: \$${total.toString()}'),
-                onTap: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (context) {
-                      return buildHistorialModal(historial);
-                    },
-                  );
-                },
+      return ListView.builder(
+        itemCount: filteredDocs.length,
+        itemBuilder: (context, index) {
+          var historial = filteredDocs[index];
+          var total = historial['Total'] ?? 0;
+          var fecha = historial['Fecha'] as Timestamp?;
+
+          return Card(
+            child: ListTile(
+              title: Text(
+                'Fecha: ${formatTimestamp(fecha)}',
               ),
-            );
-          },
-        );
-      },
-    );
-  }
+              subtitle: Text('Total: \$${total.toString()}'),
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (context) {
+                    return buildHistorialModal(historial);
+                  },
+                );
+              },
+            ),
+          );
+        },
+      );
+    },
+  );
+}
 
-  // Función para formatear el Timestamp a una fecha legible
-  String formatTimestamp(Timestamp timestamp) {
+  String formatTimestamp(Timestamp? timestamp) {
+    if (timestamp == null) return 'Fecha no disponible';
     DateTime dateTime = timestamp.toDate();
-    return DateFormat('dd-MM-yyyy').format(dateTime); // Formato: día-mes-año
+    return DateFormat('dd-MM-yyyy HH:mm').format(dateTime);
   }
 
-  // Función para formatear el Timestamp a una hora legible
-  String formatTime(Timestamp timestamp) {
-    DateTime dateTime = timestamp.toDate();
-    return DateFormat('HH:mm').format(dateTime); // Formato: horas:minutos
-  }
-
-  // Construir el modal para mostrar los detalles del historial
   Widget buildHistorialModal(QueryDocumentSnapshot historial) {
-    var productos = historial['Productos guardados'] as List<dynamic>;
+    var productos = historial['Productos'] as List<dynamic>;
     var total = historial['Total'] ?? 0;
-    var hora = historial['Hora de guardado'];
+    var fecha = historial['Fecha'] as Timestamp?;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -170,7 +166,7 @@ class _HistorialState extends State<Historial> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Ingresado a las ${formatTime(hora)}', // Mostrar fecha y hora formateadas
+            'Fecha de ingreso: ${formatTimestamp(fecha)}',
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
@@ -190,8 +186,8 @@ class _HistorialState extends State<Historial> {
               itemBuilder: (context, index) {
                 var producto = productos[index];
                 return ListTile(
-                  title: Text(producto['Nombre del producto'] ?? 'Sin nombre'), // Usar el nombre correcto del campo
-                  trailing: Text('\$${producto['Precio']?.toString() ?? '0'}'), // Usar el nombre correcto del campo
+                  title: Text(producto['Producto'] ?? 'Sin nombre'),
+                  trailing: Text('\$${producto['Precio']?.toString() ?? '0'}'),
                 );
               },
             ),

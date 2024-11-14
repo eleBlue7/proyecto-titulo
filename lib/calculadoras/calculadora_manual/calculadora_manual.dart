@@ -68,21 +68,24 @@ class _CalculadoraMState extends State<CalculadoraM>
     });
   }
 
-  void _saveProducts() async {
-    List<Product> products = _productControllers.map((controllers) {
-      return Product(
-        controllers['name']!.text,
-        int.tryParse(controllers['price']!.text) ?? 0,
-      );
-    }).toList();
-
-    await saveProductsToFirestore(products, widget.supermarket);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Productos guardados en Firestore')),
+void _saveProducts() async {
+  List<Product> products = _productControllers.map((controllers) {
+    return Product(
+      controllers['name']!.text,
+      int.tryParse(controllers['price']!.text) ?? 0,
+      widget.supermarket,  // Asignar el supermercado aquí
     );
+  }).toList();
 
-    _clearProductControllers();
-  }
+  await saveProductsToFirestore(products,widget.supermarket);
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Productos guardados en Firestore')),
+  );
+
+  _clearProductControllers();
+}
+
+
 
   void _clearProductControllers() {
     for (final controllers in _productControllers) {
@@ -102,20 +105,22 @@ class _CalculadoraMState extends State<CalculadoraM>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-             Color(0xFF4B0082),
-              Color.fromARGB(255, 197, 235, 248), // Azul más claro en la parte inferior
+            Color(0xFF4B0082),
+            Color.fromARGB(255, 197, 235, 248), // Azul más claro en la parte inferior
           ],
         ),
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
-          title:  Text('Ingresa tus productos en ${widget.supermarket}',
-          style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+          title: Text(
+            'Ingresa tus productos en ${widget.supermarket}',
+            style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+          ),
           backgroundColor: Color(0xFF4B0082),
           actions: [
             IconButton(
-              icon: Icon(Icons.save, color: Colors.white,),
+              icon: Icon(Icons.save, color: Colors.white),
               onPressed: _saveProducts,
             ),
           ],
