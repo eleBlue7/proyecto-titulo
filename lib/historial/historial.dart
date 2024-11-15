@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:share/share.dart';
 
 class Historial extends StatefulWidget {
   @override
@@ -91,62 +94,62 @@ class _HistorialState extends State<Historial> {
   }
 
   Widget buildHistorialList(String supermarket) {
-  if (userName == null) {
-    return const Center(
-        child: Text('No se pudo obtener el usuario autenticado.'));
-  }
+    if (userName == null) {
+      return const Center(
+          child: Text('No se pudo obtener el usuario autenticado.'));
+    }
 
-  return StreamBuilder<QuerySnapshot>(
-    stream: FirebaseFirestore.instance
-        .collection('Usuarios')
-        .doc(userName)
-        .collection('Historiales')
-        .snapshots(),
-    builder: (context, snapshot) {
-      if (!snapshot.hasData) {
-        return const Center(child: CircularProgressIndicator());
-      }
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('Usuarios')
+          .doc(userName)
+          .collection('Historiales')
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-      // Filtrar los documentos para mostrar solo los historiales del supermercado seleccionado
-      var filteredDocs = snapshot.data!.docs.where((doc) {
-        var data = doc.data() as Map<String, dynamic>?;
-        return data != null && data['Supermercado'] == supermarket;
-      }).toList();
+        // Filtrar los documentos para mostrar solo los historiales del supermercado seleccionado
+        var filteredDocs = snapshot.data!.docs.where((doc) {
+          var data = doc.data() as Map<String, dynamic>?; 
+          return data != null && data['Supermercado'] == supermarket;
+        }).toList();
 
-      if (filteredDocs.isEmpty) {
-        return const Center(
-            child: Text(
-                'No hay historiales disponibles para este supermercado.'));
-      }
+        if (filteredDocs.isEmpty) {
+          return const Center(
+              child: Text(
+                  'No hay historiales disponibles para este supermercado.'));
+        }
 
-      return ListView.builder(
-        itemCount: filteredDocs.length,
-        itemBuilder: (context, index) {
-          var historial = filteredDocs[index];
-          var total = historial['Total'] ?? 0;
-          var fecha = historial['Fecha'] as Timestamp?;
+        return ListView.builder(
+          itemCount: filteredDocs.length,
+          itemBuilder: (context, index) {
+            var historial = filteredDocs[index];
+            var total = historial['Total'] ?? 0;
+            var fecha = historial['Fecha'] as Timestamp?;
 
-          return Card(
-            child: ListTile(
-              title: Text(
-                'Fecha: ${formatTimestamp(fecha)}',
+            return Card(
+              child: ListTile(
+                title: Text(
+                  'Fecha: ${formatTimestamp(fecha)}',
+                ),
+                subtitle: Text('Total: \$${total.toString()}'),
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return buildHistorialModal(historial);
+                    },
+                  );
+                },
               ),
-              subtitle: Text('Total: \$${total.toString()}'),
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  builder: (context) {
-                    return buildHistorialModal(historial);
-                  },
-                );
-              },
-            ),
-          );
-        },
-      );
-    },
-  );
-}
+            );
+          },
+        );
+      },
+    );
+  }
 
   String formatTimestamp(Timestamp? timestamp) {
     if (timestamp == null) return 'Fecha no disponible';
@@ -192,8 +195,38 @@ class _HistorialState extends State<Historial> {
               },
             ),
           ),
+          ElevatedButton(
+            onPressed: () => _downloadOrShareHistorial(historial),
+            child: const Text('Compartir o Descargar Historial'),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _downloadOrShareHistorial(QueryDocumentSnapshot historial) async {
+    var productos = historial['Productos'] as List<dynamic>;
+    var total = historial['Total'] ?? 0;
+    var fecha = historial['Fecha'] as Timestamp?;
+
+    // Crear contenido del archivo .txt
+    String content = 'Historial de Compra\n';
+    content += 'Fecha: ${formatTimestamp(fecha)}\n';
+    content += 'Total: \$${total.toString()}\n\n';
+    content += 'Productos:\n';
+    for (var producto in productos) {
+      content += '${producto['Producto'] ?? 'Sin nombre'} - \$${producto['Precio']?.toString() ?? '0'}\n';
+    }
+
+    // Obtener la ruta del directorio temporal
+    final directory = await getTemporaryDirectory();
+    final path = '${directory.path}/historial_compras.txt';
+    final file = File(path);
+
+    // Escribir el contenido en el archivo
+    await file.writeAsString(content);
+
+    // Compartir el archivo
+    Share.shareFiles([path], text: 'Historial de Compras');
   }
 }

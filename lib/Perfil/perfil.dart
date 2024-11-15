@@ -72,8 +72,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Version de App'),
-          content: const Text('La aplicacion tiene la Versión 1.0'),
+          title: const Text('Versión de App'),
+          content: const Text('La aplicación tiene la Versión 1.0'),
           actions: [
             TextButton(
               child: const Text('Cerrar'),
@@ -91,11 +91,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Perfil del Usuario"),
+        title: const Text("Perfil del Usuario", style:TextStyle(fontWeight: FontWeight.w600,color: Colors.white)),
+        backgroundColor: const Color(0xFF36bfed),
         actions: [
           // Ícono que al ser presionado mostrará el diálogo
           IconButton(
-            icon: const Icon(Icons.info_outline),
+            icon: const Icon(Icons.info_outline, color: Colors.white),
             onPressed: _showVersionDialog, // Llama al método que muestra el diálogo
           ),
         ],
@@ -105,37 +106,50 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               children: [
                 const SizedBox(height: 20),
 
-                // Marco para la foto de perfil
+                // Marco para la foto de perfil con ícono de cámara
                 Center(
-                  child: GestureDetector(
-                    onTap: _pickImage, // Permitir selección de imagen al tocar
-                    child: CircleAvatar(
-                      radius: 60, // Tamaño del círculo
-                      backgroundColor: Colors.grey.shade300, // Color del marco
-                      child: ClipOval(
-                        child: _storedImagePath != null
-                            ? Image.file(
-                                File(
-                                    _storedImagePath!), // Mostrar la imagen almacenada
-                                fit: BoxFit.cover,
-                                width: 120,
-                                height: 120,
-                              )
-                            : (user!.photoURL != null
-                                ? Image.network(
-                                    user!.photoURL!,
-                                    fit: BoxFit.cover,
-                                    width: 120,
-                                    height: 120,
-                                  )
-                                : const Icon(
-                                    Icons.person,
-                                    size: 80,
-                                    color: Colors
-                                        .grey, // Color del ícono predeterminado
-                                  )),
+                  child: Stack(
+                    alignment: Alignment.bottomRight, // Posiciona el ícono en la esquina inferior derecha
+                    children: [
+                      // Círculo para la foto de perfil
+                      CircleAvatar(
+                        radius: 60, // Tamaño del círculo
+                        backgroundColor: Colors.grey.shade300, // Color del marco
+                        child: ClipOval(
+                          child: _storedImagePath != null
+                              ? Image.file(
+                                  File(_storedImagePath!), // Mostrar la imagen almacenada
+                                  fit: BoxFit.cover,
+                                  width: 120,
+                                  height: 120,
+                                )
+                              : (user!.photoURL != null
+                                  ? Image.network(
+                                      user!.photoURL!,
+                                      fit: BoxFit.cover,
+                                      width: 120,
+                                      height: 120,
+                                    )
+                                  : const Icon(
+                                      Icons.person,
+                                      size: 80,
+                                      color: Colors.grey, // Color del ícono predeterminado
+                                    )),
+                        ),
                       ),
-                    ),
+                      // Ícono de cámara
+                      GestureDetector(
+                        onTap: _pickImage, // Permitir selección de imagen al tocar el ícono
+                        child: CircleAvatar(
+                          radius: 20, // Tamaño del ícono
+                          backgroundColor: Colors.blueAccent, // Fondo del ícono
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: Colors.white, // Color del ícono
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -144,7 +158,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 Text(
                   "Bienvenido, ${user!.displayName ?? "Usuario sin nombre"}",
                   style: const TextStyle(
-                      fontSize: 24, fontWeight: FontWeight.bold),
+                      fontSize: 24, fontWeight: FontWeight.bold,color: Color(0xFF36bfed)),
                 ),
                 const SizedBox(height: 10),
 
@@ -161,7 +175,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                            color: Color(0xFF36bfed),
                           ),
                         ),
                       ),
@@ -176,7 +190,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         ),
                       ),
                       ListTile(
-                        leading: const Icon(Icons.person),
+                        leading: const Icon(Icons.person,color: Color(0xFF36bfed),),
                         title: const Text('Cambiar Perfil'),
                         onTap: () {
                           Navigator.push(
@@ -189,7 +203,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ),
                       const Divider(),
                       ListTile(
-                        leading: const Icon(Icons.lock),
+                        leading: const Icon(Icons.lock, color: Color(0xFF36bfed),),
                         title: const Text('Cambiar Contraseña'),
                         onTap: () {
                           Navigator.push(
@@ -210,12 +224,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black,
+                            color: Color(0xFF36bfed),
                           ),
                         ),
                       ),
                       ListTile(
-                        leading: const Icon(Icons.integration_instructions),
+                        leading: const Icon(Icons.integration_instructions, color: Color(0xFF36bfed),),
                         title: const Text("Como Ocupar AddUpFast!"),
                         onTap: () {
                           Navigator.push(
