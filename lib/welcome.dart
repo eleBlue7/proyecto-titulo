@@ -4,6 +4,7 @@ import 'package:supcalculadora/Perfil/perfil.dart';
 import 'package:supcalculadora/calculadoras/calculadora_de_voz/supermercado.dart';
 import 'package:supcalculadora/Configuraciones/configuraciones.dart';
 import 'package:supcalculadora/calculadoras/calculadora_manual/supermercado_manual.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 
 class Welcome extends StatefulWidget {
   const Welcome({super.key});

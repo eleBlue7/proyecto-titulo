@@ -32,7 +32,7 @@ Future<void> saveProductsToFirestore(List<Product> products, String supermarket)
     // Obtener la fecha y hora actual
     DateTime now = DateTime.now();
     String formattedDate = DateFormat('dd-MM-yyyy').format(now);
-    String formattedTime = DateFormat('HH:mm').format(now);
+    String formattedTime = DateFormat('HH:mm:ss').format(now);
 
     // Definir el ID personalizado para el historial
     String customId = "Día $formattedDate a las $formattedTime";

@@ -158,51 +158,104 @@ class _HistorialState extends State<Historial> {
   }
 
   Widget buildHistorialModal(QueryDocumentSnapshot historial) {
-    var productos = historial['Productos'] as List<dynamic>;
-    var total = historial['Total'] ?? 0;
-    var fecha = historial['Fecha'] as Timestamp?;
+  var productos = historial['Productos'] as List<dynamic>;
+  var total = historial['Total'] ?? 0;
+  var fecha = historial['Fecha'] as Timestamp?;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      height: 400,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Fecha de ingreso: ${formatTimestamp(fecha)}',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  return Container(
+    padding: const EdgeInsets.all(16),
+    height: 400,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Fecha de ingreso: ${formatTimestamp(fecha)}',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'Total: \$${total.toString()}',
+          style: const TextStyle(fontSize: 16),
+        ),
+        const SizedBox(height: 10),
+        const Text(
+          'Productos:',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
+        Expanded(
+          child: ListView.builder(
+            itemCount: productos.length,
+            itemBuilder: (context, index) {
+              var producto = productos[index];
+              return ListTile(
+                title: Text(producto['Producto'] ?? 'Sin nombre'),
+                trailing: Text('\$${producto['Precio']?.toString() ?? '0'}'),
+              );
+            },
           ),
-          const SizedBox(height: 10),
-          Text(
-            'Total: \$${total.toString()}',
-            style: const TextStyle(fontSize: 16),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'Productos:',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-          Expanded(
-            child: ListView.builder(
-              itemCount: productos.length,
-              itemBuilder: (context, index) {
-                var producto = productos[index];
-                return ListTile(
-                  title: Text(producto['Producto'] ?? 'Sin nombre'),
-                  trailing: Text('\$${producto['Precio']?.toString() ?? '0'}'),
+        ),
+        const SizedBox(height: 16), // Espacio entre la lista y los botones
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween, // Extremos
+          children: [
+            IconButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Confirmar eliminación'),
+                      content: const Text(
+                          '¿Estás seguro de que deseas eliminar este historial?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(); // Cerrar diálogo
+                          },
+                          child: const Text('Cancelar'),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            await _eliminarHistorial(historial.id);
+                            Navigator.of(context).pop(); // Cerrar diálogo
+                            Navigator.of(context).pop(); // Cerrar modal
+                          },
+                          child: const Text('Confirmar'),
+                        ),
+                      ],
+                    );
+                  },
                 );
               },
+              icon: const Icon(Icons.delete, color: Colors.red),
+              tooltip: 'Eliminar historial',
             ),
-          ),
-          ElevatedButton(
-            onPressed: () => _downloadOrShareHistorial(historial),
-            child: const Text('Compartir o Descargar Historial'),
-          ),
-        ],
-      ),
-    );
+            IconButton(
+              onPressed: () => _downloadOrShareHistorial(historial),
+              icon: const Icon(Icons.share, color: Colors.blue),
+              tooltip: 'Compartir historial',
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> _eliminarHistorial(String historialId) async {
+  try {
+    await FirebaseFirestore.instance
+        .collection('Usuarios')
+        .doc(userName)
+        .collection('Historiales')
+        .doc(historialId)
+        .delete();
+    print('Historial eliminado exitosamente.');
+  } catch (e) {
+    print('Error al eliminar el historial: $e');
   }
+}
 
   Future<void> _downloadOrShareHistorial(QueryDocumentSnapshot historial) async {
     var productos = historial['Productos'] as List<dynamic>;

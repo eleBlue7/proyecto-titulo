@@ -126,8 +126,9 @@ class _ConfiguracionesState extends State<Configuraciones> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("Detalles de la Versión"),
-          content: const Text(
-            "Versión: 0.17 Beta\n"
+          content: const SingleChildScrollView(
+            child: Text(
+            "Versión: 0.30 Beta\n"
             "Fecha de Actualización: 30 de Octubre de 2024\n\n"
             "Características:\n"
             "- Calculadora de voz mejorada\n"
@@ -145,7 +146,7 @@ class _ConfiguracionesState extends State<Configuraciones> {
             "La app AddUpFast! es una herramienta diseñada para facilitar el cálculo de compras en supermercados. "
             "Los datos ingresados y generados son de uso exclusivo del usuario. "
             "Smart💡Solutions no se responsabiliza por errores de cálculo que puedan ocurrir debido a datos incorrectos.",
-          ),
+          ),),
           actions: [
             TextButton(
               onPressed: () {

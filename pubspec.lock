@@ -648,6 +648,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
+  responsive_framework:
+    dependency: "direct main"
+    description:
+      name: responsive_framework
+      sha256: e7f61cac1a6928a19881d1a96eb2ded2c009884f2e8329f1fae1f5b4d27caaea
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.9"
   share:
     dependency: "direct main"
     description:

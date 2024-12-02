@@ -16,27 +16,12 @@ class _CalculadoraMState extends State<CalculadoraM>
   final List<Map<String, TextEditingController>> _productControllers = [];
   double _totalPrice = 0;
   bool _showDeleteButtons = false;
-  bool _showQuantity = true; // Controla si mostrar el multiplicador o no
-  late AnimationController _controller;
-  late Animation<double> _animation;
+  bool _showQuantity = true;
 
   @override
   void initState() {
     super.initState();
     _addProduct();
-
-    _controller = AnimationController(
-      duration: const Duration(seconds: 1),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _animation = Tween<double>(begin: -2, end: 2).animate(_controller);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 
   void _addProduct() {
@@ -44,7 +29,7 @@ class _CalculadoraMState extends State<CalculadoraM>
       _productControllers.add({
         'name': TextEditingController(),
         'price': TextEditingController(),
-        'quantity': TextEditingController(text: '1'), // Inicializado en 1
+        'quantity': TextEditingController(text: '1'),
       });
     });
   }
@@ -64,7 +49,7 @@ class _CalculadoraMState extends State<CalculadoraM>
 
       final price = priceString.isNotEmpty && int.tryParse(priceString) != null
           ? int.parse(priceString)
-          : 0; // Si no es un número válido, usa 0
+          : 0;
 
       final quantity = int.tryParse(quantityString) ?? 1;
 
@@ -80,41 +65,39 @@ class _CalculadoraMState extends State<CalculadoraM>
     int quantity = int.tryParse(controllers['quantity']!.text) ?? 1;
     quantity += change;
 
-    if (quantity < 1) quantity = 1; // Evita cantidades menores a 1
+    if (quantity < 1) quantity = 1;
 
     controllers['quantity']!.text = quantity.toString();
     _calculateTotalPrice();
   }
 
-  double _getFontSize(String text) {
-    return text.length > 5 ? 12 : 14; // Ajusta el tamaño si el número es largo
+  String _capitalize(String input) {
+    if (input.isEmpty) return '';
+    return input[0].toUpperCase() + input.substring(1).toLowerCase();
   }
 
   void _saveProducts() async {
     List<Product> products = _productControllers.map((controllers) {
       return Product(
-        controllers['name']!.text,
+        _capitalize(controllers['name']!.text), // Capitalizar el nombre
         int.tryParse(controllers['price']!.text) ?? 0,
-        widget.supermarket, // Se pasa el supermercado que se recibe en el constructor
+        widget.supermarket,
       );
     }).toList();
 
     await saveProductsToFirestore(products, widget.supermarket);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Productos guardados en Firestore')),
+      const SnackBar(content: Text('Productos guardados en Firestore')),
     );
 
-    _clearProductControllers();
+    _clearProductControllers(); // Limpiar después de guardar
   }
 
   void _clearProductControllers() {
-    for (final controllers in _productControllers) {
-      controllers['name']!.clear();
-      controllers['price']!.clear();
-      controllers['quantity']!.clear();
-    }
     setState(() {
+      _productControllers.clear();
       _totalPrice = 0;
+      _addProduct(); // Agregar una fila inicial vacía
     });
   }
 
@@ -139,13 +122,14 @@ class _CalculadoraMState extends State<CalculadoraM>
         appBar: AppBar(
           title: Text(
             'Ingresa tus productos en ${widget.supermarket}',
-            style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
+            style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
           ),
-          backgroundColor: Color(0xFF6D6DFF),
+          backgroundColor: const Color(0xFF6D6DFF),
           actions: [
             IconButton(
-              icon: Icon(Icons.save, color: Colors.white),
+              icon: const Icon(Icons.save, color: Colors.white),
               onPressed: _saveProducts,
+              tooltip: 'Guardar productos',
             ),
           ],
         ),
@@ -153,10 +137,9 @@ class _CalculadoraMState extends State<CalculadoraM>
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // Mostrar el total como entero, sin decimales
               Text(
-                'Precio Total: \$${_totalPrice.toStringAsFixed(0)}', // Muestra el total sin decimales
-                style: TextStyle(fontSize: 20, color: Colors.white),
+                'Precio Total: \$${_totalPrice.toStringAsFixed(0)}',
+                style: const TextStyle(fontSize: 20, color: Colors.white),
               ),
               const SizedBox(height: 20),
               Expanded(
@@ -172,32 +155,27 @@ class _CalculadoraMState extends State<CalculadoraM>
                         padding: EdgeInsets.all(isSmallScreen ? 6.0 : 8.0),
                         child: Row(
                           children: [
-                            // Reducir el tamaño del campo del nombre del producto
                             SizedBox(
-                              width: 120, // Definir un tamaño más pequeño para el nombre
+                              width: 120,
                               child: TextFormField(
                                 controller: controllers['name'],
-                                decoration: InputDecoration(
+                                decoration: const InputDecoration(
                                   prefixIcon: Icon(Icons.shopping_cart),
-                                  labelText: 'Producto ${index + 1}',
+                                  labelText: 'Producto',
                                   border: OutlineInputBorder(),
                                 ),
-                                style: TextStyle(fontSize: 12), // Fuente más pequeña
+                                style: const TextStyle(fontSize: 12),
                               ),
                             ),
                             const SizedBox(width: 4),
                             SizedBox(
-                              width: 100, // Ajuste compacto para el campo de precio
+                              width: 100,
                               child: TextFormField(
                                 controller: controllers['price'],
-                                decoration: InputDecoration(
+                                decoration: const InputDecoration(
                                   prefixIcon: Icon(Icons.price_change),
                                   labelText: 'Precio',
-                                  labelStyle: TextStyle(fontSize: 14),
                                   border: OutlineInputBorder(),
-                                ),
-                                style: TextStyle(
-                                  fontSize: _getFontSize(controllers['price']!.text),
                                 ),
                                 onChanged: (value) {
                                   _calculateTotalPrice();
@@ -205,17 +183,14 @@ class _CalculadoraMState extends State<CalculadoraM>
                                 keyboardType: TextInputType.number,
                               ),
                             ),
-                            const SizedBox(width: 2), // Reducir espacio entre el precio y los multiplicadores
-                            // Campo de cantidad más grande
+                            const SizedBox(width: 2),
                             SizedBox(
-                              width: 120, // Aumento del ancho del campo de cantidad
+                              width: 120,
                               child: Row(
-                                mainAxisSize: MainAxisSize.min, // Para hacer los botones más cercanos
                                 children: [
                                   if (_showQuantity) ...[
                                     IconButton(
-                                      iconSize: 20,
-                                      icon: Icon(Icons.remove),
+                                      icon: const Icon(Icons.remove),
                                       onPressed: () => _updateQuantity(index, -1),
                                     ),
                                     Flexible(
@@ -223,24 +198,21 @@ class _CalculadoraMState extends State<CalculadoraM>
                                         controller: controllers['quantity'],
                                         textAlign: TextAlign.center,
                                         readOnly: true,
-                                        decoration: InputDecoration(
+                                        decoration: const InputDecoration(
                                           isDense: true,
                                           border: OutlineInputBorder(),
                                           contentPadding: EdgeInsets.symmetric(vertical: 2),
                                         ),
-                                        style: TextStyle(fontSize: 14), // Fuente más pequeña
                                       ),
                                     ),
                                     IconButton(
-                                      iconSize: 20,
-                                      icon: Icon(Icons.add),
+                                      icon: const Icon(Icons.add),
                                       onPressed: () => _updateQuantity(index, 1),
                                     ),
                                   ],
-                                  // El botón de eliminar al lado del precio
                                   if (_showDeleteButtons)
                                     IconButton(
-                                      icon: Icon(Icons.remove_circle_outline, color: Colors.red),
+                                      icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
                                       onPressed: () => _removeProduct(index),
                                       tooltip: 'Eliminar producto',
                                     ),
@@ -254,35 +226,50 @@ class _CalculadoraMState extends State<CalculadoraM>
                   },
                 ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  ElevatedButton(
-                    onPressed: _addProduct,
-                    child: Row(
-                      children: [
-                        Icon(Icons.add),
-                        const SizedBox(width: 4),
-                        const Text('Agregar Producto'),
-                      ],
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        if (_showDeleteButtons) {
-                          _showDeleteButtons = false;
-                          _showQuantity = true; // Mostrar el multiplicador nuevamente
-                        } else {
-                          _showDeleteButtons = true;
-                          _showQuantity = false; // Ocultar el multiplicador
-                        }
-                      });
-                    },
-                    child: Text(_showDeleteButtons ? 'Cancelar' : 'Eliminar Producto'),
-                  ),
-                ],
-              ),
+              Stack(
+  children: [
+    // Botón de agregar en el centro de la pantalla
+    Align(
+      alignment: Alignment.center,
+      child: CircleAvatar(
+        backgroundColor: const Color(0xFF6D6DFF),
+        radius: 35,
+        child: IconButton(
+          onPressed: _addProduct,
+          icon: const Icon(
+            Icons.add,
+            color: Colors.white,
+            size: 28.0,
+          ),
+          tooltip: 'Agregar producto',
+          padding: EdgeInsets.zero,
+          alignment: Alignment.center,
+        ),
+      ),
+    ),
+
+    // Botón de eliminar en la parte inferior derecha
+    Positioned(
+      bottom: 16.0, // Margen desde el fondo
+      right: 16.0,  // Margen desde la derecha
+      child: IconButton(
+        onPressed: () {
+          setState(() {
+            _showDeleteButtons = !_showDeleteButtons;
+            _showQuantity = !_showQuantity;
+          });
+        },
+        icon: Icon(
+          _showDeleteButtons ? Icons.cancel : Icons.delete,
+          color: Colors.red,
+          size: 28.0,
+        ),
+        tooltip: _showDeleteButtons ? 'Cancelar' : 'Eliminar producto',
+      ),
+    ),
+  ],
+),
+
             ],
           ),
         ),
