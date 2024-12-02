@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:supcalculadora/calculadoras/calculadora_de_voz/main_calculadora.dart';// Asegúrate de tener esta pantalla
+import 'package:supcalculadora/calculadoras/calculadora_de_voz/main_calculadora.dart'; // Asegúrate de tener esta pantalla
 
 class SupermarketSelection extends StatefulWidget {
   const SupermarketSelection({super.key});
@@ -23,7 +23,7 @@ class _SupermarketSelectionState extends State<SupermarketSelection> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Seleccionar Supermercado',
-        style: TextStyle(fontWeight: FontWeight.w600,color: Colors.white)),
+            style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
         backgroundColor: const Color(0xFF6D6DFF),
         centerTitle: true,
       ),
@@ -44,7 +44,10 @@ class _SupermarketSelectionState extends State<SupermarketSelection> {
             children: [
               const Text(
                 '¿A qué supermercado vas a ir?',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white),
               ),
               const SizedBox(height: 20),
               Wrap(
@@ -54,7 +57,8 @@ class _SupermarketSelectionState extends State<SupermarketSelection> {
                 children: [
                   buildSupermarketOption('Jumbo', 'assets/jumbo.png'),
                   buildSupermarketOption('Lider', 'assets/lider.png'),
-                  buildSupermarketOption('Santa Isabel', 'assets/santa_isabel.png'),
+                  buildSupermarketOption(
+                      'Santa Isabel', 'assets/santa_isabel.png'),
                   buildSupermarketOption('Unimarc', 'assets/unimarc.png'),
                   buildSupermarketOption('Tottus', 'assets/tottus.png'),
                   buildSupermarketOption('Acuenta', 'assets/acuenta.png'),
@@ -68,7 +72,8 @@ class _SupermarketSelectionState extends State<SupermarketSelection> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => CalDeVoz(supermarket: selectedSupermarket!),
+                            builder: (context) =>
+                                CalDeVoz(supermarket: selectedSupermarket!),
                           ),
                         );
                       }
@@ -78,7 +83,11 @@ class _SupermarketSelectionState extends State<SupermarketSelection> {
                   shape: const CircleBorder(),
                   padding: const EdgeInsets.all(20),
                 ), // Deshabilitar si no se ha seleccionado un supermercado
-                child: const Icon(Icons.check, size: 30, color: Color.fromARGB(255, 255, 255, 255),),
+                child: const Icon(
+                  Icons.check,
+                  size: 30,
+                  color: Color.fromARGB(255, 255, 255, 255),
+                ),
               ),
             ],
           ),
@@ -95,14 +104,17 @@ class _SupermarketSelectionState extends State<SupermarketSelection> {
         decoration: BoxDecoration(
           color: Colors.white, // Set background color to white
           border: Border.all(
-            color: selectedSupermarket == name ? Colors.green : const Color.fromARGB(255, 105, 105, 105),
+            color: selectedSupermarket == name
+                ? Colors.green
+                : const Color.fromARGB(255, 105, 105, 105),
             width: 2,
           ),
         ),
         padding: const EdgeInsets.all(10),
         child: Column(
           children: [
-            Image.asset(assetPath, width: 100, height: 100), // Imagen del supermercado
+            Image.asset(assetPath,
+                width: 100, height: 100), // Imagen del supermercado
             const SizedBox(height: 8),
             Text(name, style: const TextStyle(fontSize: 16)),
           ],

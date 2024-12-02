@@ -78,7 +78,8 @@ class _SplashScreenState extends State<SplashScreen>
     double logoSize = 400.0;
 
     return Scaffold(
-      backgroundColor: Colors.white, // Fondo blanco
+      backgroundColor:
+          const Color(0xFF36bfed), // Nuevo color de fondo Picton Blue
       body: Center(
         child: FadeTransition(
           opacity: _animation,
