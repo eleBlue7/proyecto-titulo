@@ -43,7 +43,8 @@ class _ChangePasswordState extends State<ChangePassword> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cambiar Contraseña', style: TextStyle(fontWeight: FontWeight.w600,color: Colors.white),),
-        backgroundColor: const Color(0xFF6D6DFF),
+        backgroundColor: const Color(0xFF36bfed),
+        centerTitle: true,
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -51,8 +52,8 @@ class _ChangePasswordState extends State<ChangePassword> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF4B0082),
-              Color.fromARGB(255, 197, 235, 248),
+              Color(0xFF36bfed),
+                Color.fromARGB(255, 197, 235, 248),
             ],
           ),
         ),
@@ -74,13 +75,13 @@ class _ChangePasswordState extends State<ChangePassword> {
                     TextFormField(
                       controller: _passwordController,
                       decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.lock, color: Color(0xFF4B0082),),
+                        prefixIcon: const Icon(Icons.lock, color: Color(0xFF36bfed),),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscureTextPassword
                                 ? Icons.visibility_off
                                 : Icons.visibility,
-                                color: Color(0xFF4B0082),
+                                color: Color(0xFF36bfed),
                           ),
                           onPressed: () {
                             setState(() {
@@ -107,13 +108,13 @@ class _ChangePasswordState extends State<ChangePassword> {
                     TextFormField(
                       controller: _confirmPasswordController,
                       decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.lock, color: Color(0xFF4B0082),),
+                        prefixIcon: const Icon(Icons.lock, color: Color(0xFF36bfed),),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscureTextConfirmPassword
                                 ? Icons.visibility_off
                                 : Icons.visibility,
-                                color: Color(0xFF4B0082),
+                                color: Color(0xFF36bfed),
                           ),
                           onPressed: () {
                             setState(() {
@@ -145,7 +146,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF4B0082),
+                        backgroundColor: const Color(0xFF36bfed),
                         padding: const EdgeInsets.symmetric(
                           vertical: 16.0,
                           horizontal: 32.0,

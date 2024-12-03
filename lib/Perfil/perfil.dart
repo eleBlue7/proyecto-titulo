@@ -6,7 +6,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supcalculadora/Perfil/change_password.dart';
 import 'package:supcalculadora/Perfil/change_profile.dart';
-import 'package:supcalculadora/Perfil/instruccion.dart';
 import 'package:supcalculadora/logins-registros/login_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -72,8 +71,27 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Versión de App'),
-          content: const Text('La aplicación tiene la Versión 1.0'),
+          title: const Text('Como Usar AddUpFast!'),
+          content: const SingleChildScrollView(
+            child: Text("Instrucciones De Uso:\n"
+            "1. Para empezar a usar la aplicación, primero inicia sesión con tu cuenta.\n"
+              "2. Navega por el menú principal para acceder a las diferentes funcionalidades.\n"
+              "3. Cambia tu perfil desde la sección de ajustes.\n"
+              "4. Para ocupar las distintas calculadoras porfavor elige la de tu preferencia (Calculadora de voz o Calculadora Manual).\n"
+              "5. Indicar el supermercado el cual estas visitando para poder guardar el historial de tu compra.\n"
+              "6. Si vas a utilizar la calculadora de voz porfavor acepta los permisos para utilizar tu microfono para poder utilizar esta funcion.\n"
+              "7. Apreta el boton del microfono en la vista, Luego Indica el producto y el precio correspondiente a este.\n"
+              "8. Apreta el boton de guardado en la parte superior derecha para poder guardar tu historial de compra.\n"
+              "9. Si ocuparas la calculadora Manual en su primer campo va el nombre del producto, segundo el precio de este para posterior de ese campo aumentar o disminuir la cantdidad de los productos.\n\n"
+            "Desarrollador:\n"
+            "Desarrollado por el Equipo Smart💡Solutions\n\n"
+            "Contacto de soporte:\n"
+            "Para consultas o soporte, comunícate a: soporte@gmail.com\n\n"
+            "Licencia y Términos:\n"
+            "Al utilizar esta aplicación, aceptas nuestros términos de uso. "
+            "La app AddUpFast! es una herramienta diseñada para facilitar el cálculo de compras en supermercados. "
+            "Los datos ingresados y generados son de uso exclusivo del usuario. "
+            "Smart💡Solutions no se responsabiliza por errores de cálculo que puedan ocurrir debido a datos incorrectos.")),
           actions: [
             TextButton(
               child: const Text('Cerrar'),
@@ -210,32 +228,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => const ChangePassword(),
-                            ),
-                          );
-                        },
-                      ),
-                      const Divider(),
-
-                      // Subtítulo para instrucciones
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.0),
-                        child: Text(
-                          'Instrucciones de uso',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF36bfed),
-                          ),
-                        ),
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.integration_instructions, color: Color(0xFF36bfed),),
-                        title: const Text("Como Ocupar AddUpFast!"),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const InstructionScreen(),
                             ),
                           );
                         },

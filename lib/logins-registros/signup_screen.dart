@@ -105,13 +105,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size; // Tamaño de la pantalla
+    final double screenHeight = size.height;
+    final double screenWidth = size.width;
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           'AddUpFast!',
           style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
         ),
-        backgroundColor: const Color(0xFF6D6DFF),
+        backgroundColor: const Color(0xFF36bfed),
         centerTitle: true,
       ),
       body: SizedBox.expand(
@@ -121,17 +124,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(0xFF4B0082),
+                Color(0xFF36bfed),
                 Color.fromARGB(255, 197, 235, 248),
               ],
             ),
           ),
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding:  EdgeInsets.symmetric(
+              horizontal : screenWidth*0.05,
+              vertical: screenHeight*0.05,
+              ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 80),
+                 SizedBox(height: screenHeight * 0.02), // Espaciado dinámico
+                    Image.asset(
+                      'assets/logo-v2.png',
+                      height: screenHeight * 0.15, // 15% de la altura
+                      width: screenHeight * 0.15, // Proporcional al alto
+                      fit: BoxFit.contain,
+                    ),
+                    SizedBox(height: screenHeight * 0.01), 
                 const Text(
                   "Regístrate",
                   style: TextStyle(
@@ -163,7 +176,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
                             decoration: const InputDecoration(
-                              prefixIcon: Icon(Icons.email, color: Color(0xFF4B0082),),
+                              prefixIcon: Icon(Icons.email, color: Color(0xFF36bfed),),
                               border: OutlineInputBorder(),
                               labelText: "Email",
                             ),
@@ -184,7 +197,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             controller: _nameController,
                             keyboardType: TextInputType.text,
                             decoration: const InputDecoration(
-                              prefixIcon: Icon(Icons.person, color: Color(0xFF4B0082),),
+                              prefixIcon: Icon(Icons.person, color: Color(0xFF36bfed),),
                               border: OutlineInputBorder(),
                               labelText: "Nombre de Usuario",
                             ),
@@ -206,7 +219,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             obscureText: !_isPasswordVisible, // Controla si el texto es visible
                             keyboardType: TextInputType.text,
                             decoration: InputDecoration(
-                              prefixIcon: const Icon(Icons.lock, color: Color(0xFF4B0082),),
+                              prefixIcon: const Icon(Icons.lock, color: Color(0xFF36bfed),),
                               border: const OutlineInputBorder(),
                               labelText: "Contraseña",
                               suffixIcon: IconButton(
@@ -214,7 +227,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   _isPasswordVisible
                                       ? Icons.visibility
                                       : Icons.visibility_off,
-                                      color: Color(0xFF4B0082),
+                                      color: Color(0xFF36bfed),
                                 ),
                                 onPressed: () {
                                   setState(() {
@@ -243,7 +256,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               }
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF4B0082),
+                              backgroundColor: const Color(0xFF36bfed),
                               padding: const EdgeInsets.symmetric(
                                 vertical: 16.0,
                                 horizontal: 32.0,

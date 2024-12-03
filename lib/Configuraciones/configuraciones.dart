@@ -170,6 +170,7 @@ class _ConfiguracionesState extends State<Configuraciones> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
+        centerTitle: true,
       ),
       body: Column(
         children: [

@@ -131,7 +131,8 @@ class _ChangeProfileState extends State<ChangeProfile> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cambiar Perfil',style: TextStyle(fontWeight: FontWeight.w600,color: Colors.white),),
-        backgroundColor: const Color(0xFF6D6DFF),
+        backgroundColor: const Color(0xFF36bfed),
+        centerTitle: true,
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -139,7 +140,7 @@ class _ChangeProfileState extends State<ChangeProfile> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF4B0082),
+              Color(0xFF36bfed),
               Color.fromARGB(255, 197, 235, 248),
             ],
           ),
@@ -162,7 +163,7 @@ class _ChangeProfileState extends State<ChangeProfile> {
                     TextFormField(
                       controller: _nameController,
                       decoration: const InputDecoration(
-                        prefixIcon: Icon(Icons.person, color: Color(0xFF4B0082),),
+                        prefixIcon: Icon(Icons.person, color: Color(0xFF36bfed),),
                         labelText: 'Nuevo nombre de usuario',
                       ),
                       validator: (value) {
@@ -179,14 +180,14 @@ class _ChangeProfileState extends State<ChangeProfile> {
                       controller: _passwordController,
                       obscureText: !_isPasswordVisible, // Controlar si la contraseña es visible u oculta
                       decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.lock, color: Color(0xFF4B0082),),
+                        prefixIcon: const Icon(Icons.lock, color: Color(0xFF36bfed),),
                         labelText: 'Contraseña actual',
                         suffixIcon: IconButton(
                           icon: Icon(
                             _isPasswordVisible
                                 ? Icons.visibility
                                 : Icons.visibility_off,
-                                color: Color(0xFF4B0082),
+                                color: Color(0xFF36bfed),
                           ),
                           onPressed: () {
                             setState(() {
@@ -212,7 +213,7 @@ class _ChangeProfileState extends State<ChangeProfile> {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF4B0082),
+                        backgroundColor: const Color(0xFF36bfed),
                         padding: const EdgeInsets.symmetric(
                           vertical: 16.0,
                           horizontal: 32.0,
