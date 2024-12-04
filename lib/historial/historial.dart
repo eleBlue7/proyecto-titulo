@@ -103,7 +103,7 @@ class _HistorialState extends State<Historial> {
       stream: FirebaseFirestore.instance
           .collection('Usuarios')
           .doc(userName)
-          .collection('Historiales')
+          .collection('Supermercados')
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {

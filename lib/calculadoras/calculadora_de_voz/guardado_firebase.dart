@@ -16,6 +16,9 @@ Future<void> saveProductsToFirestore(List<Product> products, String supermarket)
     // Obtener el nombre de usuario
     String userName = user.displayName ?? 'UsuarioDesconocido';
 
+    // Sanitizar el nombre del supermercado
+    String sanitizedSupermarket = supermarket.trim().replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_').toLowerCase();
+
     // Referencia a la instancia de Firestore
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
@@ -28,6 +31,12 @@ Future<void> saveProductsToFirestore(List<Product> products, String supermarket)
       'email': user.email ?? 'CorreoDesconocido',
       'uid': user.uid,
     }, SetOptions(merge: true));
+
+    // Crear o actualizar el documento del supermercado con un campo "nombre"
+    DocumentReference supermercadoDoc = userDoc.collection('Supermercados').doc(sanitizedSupermarket);
+    await supermercadoDoc.set({
+      'nombre': supermarket,
+    }, SetOptions(merge: true)); // Merge para evitar sobrescribir documentos existentes
 
     // Obtener la fecha y hora actual
     DateTime now = DateTime.now();
@@ -43,15 +52,14 @@ Future<void> saveProductsToFirestore(List<Product> products, String supermarket)
       'Precio': product.precio,
     }).toList();
 
-    // Guardar el historial en Firestore
-    await userDoc.collection('Historiales').doc(customId).set({
+    // Crear el historial directamente como un documento bajo el supermercado
+    await supermercadoDoc.collection("Historiales").doc(customId).set({
       'Fecha': FieldValue.serverTimestamp(),
       'Productos': productosConSupermercado,
-      'Supermercado': supermarket,
       'Total': products.fold(0, (total, product) => total + product.precio),
     });
 
-    print("Historial guardado en Firestore!");
+    print("Datos guardados correctamente con la estructura deseada!");
   } catch (e) {
     print("Error al guardar productos en Firestore: $e");
   }
