@@ -76,5 +76,6 @@ flutter:
     - assets/perro.png
     - assets/tottus.png
     - assets/acuenta.png
+    - assets/designer.png
 
   uses-material-design: true

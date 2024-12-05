@@ -24,14 +24,14 @@ class _SupermarketSelection_manualState extends State<SupermarketSelection_manua
       appBar: AppBar(
         title: const Text('Seleccionar Supermercado',
         style: TextStyle(fontWeight: FontWeight.w600,color: Colors.white)),
-        backgroundColor: const Color(0xFF6D6DFF),
+        backgroundColor: const Color(0xFF36bfed),
         centerTitle: true,
       ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFF4B0082),
+              Color(0xFF36bfed),
               Color.fromARGB(255, 197, 235, 248),
             ],
             begin: Alignment.topLeft,
@@ -58,6 +58,7 @@ class _SupermarketSelection_manualState extends State<SupermarketSelection_manua
                   buildSupermarketOption('Unimarc', 'assets/unimarc.png'),
                   buildSupermarketOption('Tottus', 'assets/tottus.png'),
                   buildSupermarketOption('Acuenta', 'assets/acuenta.png'),
+                  buildSupermarketOption('otros', 'assets/designer.png'),
                 ],
               ),
               const SizedBox(height: 30),

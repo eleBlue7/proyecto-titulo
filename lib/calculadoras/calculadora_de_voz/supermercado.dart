@@ -24,15 +24,15 @@ class _SupermarketSelectionState extends State<SupermarketSelection> {
       appBar: AppBar(
         title: const Text('Seleccionar Supermercado',
             style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
-        backgroundColor: const Color(0xFF6D6DFF),
+        backgroundColor: const Color(0xFF36bfed),
         centerTitle: true,
       ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              const Color(0xFF4B0082),
-              Color.fromARGB(255, 197, 235, 248),
+              Color(0xFF36bfed),
+                Color.fromARGB(255, 255, 255, 255),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -57,11 +57,11 @@ class _SupermarketSelectionState extends State<SupermarketSelection> {
                 children: [
                   buildSupermarketOption('Jumbo', 'assets/jumbo.png'),
                   buildSupermarketOption('Lider', 'assets/lider.png'),
-                  buildSupermarketOption(
-                      'Santa Isabel', 'assets/santa_isabel.png'),
+                  buildSupermarketOption('Santa Isabel', 'assets/santa_isabel.png'),
                   buildSupermarketOption('Unimarc', 'assets/unimarc.png'),
                   buildSupermarketOption('Tottus', 'assets/tottus.png'),
                   buildSupermarketOption('Acuenta', 'assets/acuenta.png'),
+                  buildSupermarketOption('Otros', 'assets/designer.png'),
                 ],
               ),
               const SizedBox(height: 30),
