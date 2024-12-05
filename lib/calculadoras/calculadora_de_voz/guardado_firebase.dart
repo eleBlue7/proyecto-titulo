@@ -16,8 +16,7 @@ Future<void> saveProductsToFirestore(List<Product> products, String supermarket)
     // Obtener el nombre de usuario
     String userName = user.displayName ?? 'UsuarioDesconocido';
 
-    // Sanitizar el nombre del supermercado
-    String sanitizedSupermarket = supermarket.trim().replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_').toLowerCase();
+   
 
     // Referencia a la instancia de Firestore
     FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -27,15 +26,15 @@ Future<void> saveProductsToFirestore(List<Product> products, String supermarket)
 
     // Verificar si el documento del usuario ya existe; si no, crearlo
     await userDoc.set({
-      'nombre': user.displayName ?? 'NombreDesconocido',
-      'email': user.email ?? 'CorreoDesconocido',
-      'uid': user.uid,
+      'Nombre': user.displayName ?? 'NombreDesconocido',
+      'Email': user.email ?? 'CorreoDesconocido',
+      'Uid': user.uid,
     }, SetOptions(merge: true));
 
     // Crear o actualizar el documento del supermercado con un campo "nombre"
-    DocumentReference supermercadoDoc = userDoc.collection('Supermercados').doc(sanitizedSupermarket);
+    DocumentReference supermercadoDoc = userDoc.collection('Supermercados').doc(supermarket);
     await supermercadoDoc.set({
-      'nombre': supermarket,
+      'Nombre': supermarket,
     }, SetOptions(merge: true)); // Merge para evitar sobrescribir documentos existentes
 
     // Obtener la fecha y hora actual

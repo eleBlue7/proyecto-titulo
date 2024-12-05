@@ -139,7 +139,7 @@ class _HistorialState extends State<Historial> {
           .collection('Usuarios')
           .doc(userName)
           .collection('Supermercados')
-          .doc(supermarket.toLowerCase()) // Ajustar a minúsculas
+          .doc(supermarket) // Ajustar a minúsculas
           .collection('Historiales')
           .snapshots(),
       builder: (context, snapshot) {
@@ -289,7 +289,7 @@ class _HistorialState extends State<Historial> {
           .collection('Usuarios')
           .doc(userName)
           .collection('Supermercados')
-          .doc(selectedSupermarket?.toLowerCase()) // Añadir supermercado
+          .doc(selectedSupermarket) // Añadir supermercado
           .collection('Historiales')
           .doc(historialId)
           .delete();
@@ -324,130 +324,133 @@ class _HistorialState extends State<Historial> {
   }
 
   // Función de edición de historial
-  void _editarHistorial(QueryDocumentSnapshot historial) {
-    List<dynamic> productos = List.from(historial['Productos']);
-    TextEditingController totalController = TextEditingController();
+void _editarHistorial(QueryDocumentSnapshot historial) {
+  List<dynamic> productos = List.from(historial['Productos']);
+  List<TextEditingController> productoControllers = [];
+  List<TextEditingController> precioControllers = [];
+  TextEditingController totalController = TextEditingController();
 
-    void calcularTotal() {
-      double total = productos.fold(0, (sum, producto) {
-        double precio = double.tryParse(producto['Precio'].toString()) ?? 0;
-        return sum + precio;
-      });
-      totalController.text = total.toStringAsFixed(2);
-    }
-
-    calcularTotal(); // Calcular el total inicial
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Editar Historial'),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: productos.length,
-                        itemBuilder: (context, index) {
-                          TextEditingController productoController =
-                              TextEditingController(
-                                  text: productos[index]['Producto']);
-                          TextEditingController precioController =
-                              TextEditingController(
-                                  text: productos[index]['Precio'].toString());
-
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: Row(
-                              children: [
-                                // Campo para el nombre del producto
-                                Expanded(
-                                  child: TextField(
-                                    controller: productoController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Producto',
-                                    ),
-                                    onChanged: (value) {
-                                      setState(() {
-                                        productos[index]['Producto'] = value;
-                                      });
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                // Campo para el precio del producto
-                                SizedBox(
-                                  width: 100,
-                                  child: TextField(
-                                    controller: precioController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Precio',
-                                    ),
-                                    keyboardType: TextInputType.number,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        productos[index]['Precio'] =
-                                            double.tryParse(value) ?? 0;
-                                        calcularTotal(); // Recalcular el total
-                                      });
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    // Mostrar el total calculado
-                    Text(
-                      'Total: \$${totalController.text}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Cancelar'),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    // Guardar los cambios en Firestore
-                    await FirebaseFirestore.instance
-                        .collection('Usuarios')
-                        .doc(userName)
-                        .collection('Supermercados')
-                        .doc(selectedSupermarket?.toLowerCase())
-                        .collection('Historiales')
-                        .doc(historial.id)
-                        .update({
-                      'Productos': productos,
-                      'Total': double.tryParse(totalController.text),
-                    });
-
-                    Navigator.pop(context); // Cerrar el diálogo
-                  },
-                  child: const Text('Guardar Cambios'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
+  void calcularTotal() {
+    int total = productos.fold(0, (sum, producto) {
+      int precio = int.tryParse(producto['Precio'].toString()) ?? 0;
+      return sum + precio;
+    });
+    totalController.text = total.toString();
   }
+
+  // Inicializa los controladores al abrir el modal
+  for (var producto in productos) {
+    productoControllers.add(TextEditingController(text: producto['Producto']));
+    precioControllers.add(TextEditingController(text: producto['Precio'].toString()));
+  }
+
+  calcularTotal(); // Calcular el total inicial
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('Editar Historial'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: productos.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Row(
+                            children: [
+                              // Campo para el nombre del producto
+                              Expanded(
+                                child: TextField(
+                                  controller: productoControllers[index],
+                                  decoration: const InputDecoration(
+                                    labelText: 'Producto',
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      productos[index]['Producto'] = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              // Campo para el precio del producto
+                              SizedBox(
+                                width: 100,
+                                child: TextField(
+                                  controller: precioControllers[index],
+                                  decoration: const InputDecoration(
+                                    labelText: 'Precio',
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      productos[index]['Precio'] =
+                                          int.tryParse(value) ?? 0;
+                                      calcularTotal(); // Recalcular el total
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // Mostrar el total calculado
+                  Text(
+                    'Total: \$${totalController.text}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('Cancelar'),
+              ),
+              TextButton(
+                onPressed: () async {
+                  // Guardar los cambios en Firestore
+                  await FirebaseFirestore.instance
+                      .collection('Usuarios')
+                      .doc(userName)
+                      .collection('Supermercados')
+                      .doc(selectedSupermarket)
+                      .collection('Historiales')
+                      .doc(historial.id)
+                      .update({
+                    'Productos': productos,
+                    'Total': int.tryParse(totalController.text) ?? 0,
+                  });
+
+                  Navigator.pop(context); // Cerrar el diálogo
+                },
+                child: const Text('Guardar Cambios'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
+
 }

@@ -180,7 +180,7 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
                         context,
                         MaterialPageRoute(
                           builder: (context) =>
-                              const SupermarketSelection_manual(),
+                              const SupermarketSelectionManual(),
                         ),
                       );
                     },

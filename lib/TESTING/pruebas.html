@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inyección de Productos con Historial</title>
+  <!-- Firebase v8 Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+</head>
+
+<body>
+  <h1>Inyección de Productos</h1>
+
+  <!-- Selección de usuarios -->
+  <div id="selectUser">
+    <h2>Seleccionar Usuario</h2>
+    <label for="userDropdown">Seleccione un usuario:</label>
+    <select id="userDropdown">
+      <option value="">Cargando usuarios...</option>
+    </select><br>
+    <button id="selectUserBtn">Seleccionar Usuario</button>
+  </div>
+
+  <!-- Selección de supermercado -->
+  <div id="selectSupermarket" style="display: none;">
+    <h2>Seleccionar Supermercado</h2>
+    <label for="supermarketDropdown">Seleccione un supermercado:</label>
+    <select id="supermarketDropdown">
+      <option value="">Cargando supermercados...</option>
+    </select><br>
+    <button id="selectSupermarketBtn">Continuar</button>
+  </div>
+
+  <!-- Formulario de productos -->
+  <div id="productFormDiv" style="display: none;">
+    <h2>Agregar Productos</h2>
+    <div id="productContainer">
+      <!-- Contenedor donde se agregarán las secciones dinámicas -->
+    </div>
+    <button id="addMoreBtn">Agregar Más</button><br><br>
+    <button id="injectBtn">Inyectar</button>
+  </div>
+
+  <script>
+    // Configuración de Firebase
+    var firebaseConfig = {
+      apiKey: "AIzaSyAwO8ttlqx57PLimnRXFtI8wGjmGDu3anw",
+      authDomain: "supercalculadora-52c51.firebaseapp.com",
+      projectId: "supercalculadora-52c51",
+      storageBucket: "supercalculadora-52c51.appspot.com",
+      messagingSenderId: "440430481154",
+      appId: "1:440430481154:web:bf0046d3006c8364dc7c1b"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+
+    var selectedUid = null;
+    var selectedSupermarket = null;
+
+    // Cargar usuarios desde Firestore
+    function loadUsers() {
+      var userDropdown = document.getElementById("userDropdown");
+      db.collection("Usuarios")
+        .get()
+        .then(function (querySnapshot) {
+          userDropdown.innerHTML = '<option value="">Seleccione un usuario</option>';
+          querySnapshot.forEach(function (doc) {
+            var option = document.createElement("option");
+            option.value = doc.id; // UID del usuario
+            option.textContent = doc.id;
+            userDropdown.appendChild(option);
+          });
+        })
+        .catch(function (error) {
+          console.error("Error al cargar usuarios:", error);
+        });
+    }
+
+    // Cargar supermercados para el usuario seleccionado
+    function loadSupermarkets(uid) {
+      var supermarketDropdown = document.getElementById("supermarketDropdown");
+      db.collection("Usuarios").doc(uid).collection("Supermercados")
+        .get()
+        .then(function (querySnapshot) {
+          supermarketDropdown.innerHTML = '<option value="">Seleccione un supermercado</option>';
+          querySnapshot.forEach(function (doc) {
+            var option = document.createElement("option");
+            option.value = doc.id; // Nombre del supermercado
+            option.textContent = doc.id;
+            supermarketDropdown.appendChild(option);
+          });
+        })
+        .catch(function (error) {
+          console.error("Error al cargar supermercados:", error);
+        });
+    }
+
+    // Seleccionar usuario
+    document.getElementById("selectUserBtn").addEventListener("click", function () {
+      var userDropdown = document.getElementById("userDropdown");
+      selectedUid = userDropdown.value;
+      if (!selectedUid) {
+        alert("Debe seleccionar un usuario.");
+        return;
+      }
+      alert(`Usuario seleccionado: ${selectedUid}`);
+      document.getElementById("selectUser").style.display = "none";
+      document.getElementById("selectSupermarket").style.display = "block";
+      loadSupermarkets(selectedUid);
+    });
+
+    // Seleccionar supermercado
+    document.getElementById("selectSupermarketBtn").addEventListener("click", function () {
+      var supermarketDropdown = document.getElementById("supermarketDropdown");
+      selectedSupermarket = supermarketDropdown.value;
+      if (!selectedSupermarket) {
+        alert("Debe seleccionar un supermercado.");
+        return;
+      }
+      alert(`Supermercado seleccionado: ${selectedSupermarket}`);
+      document.getElementById("selectSupermarket").style.display = "none";
+      document.getElementById("productFormDiv").style.display = "block";
+      addProductSection(); // Agregar la primera sección automáticamente
+    });
+
+    // Agregar una sección dinámica para productos
+    function addProductSection() {
+      var container = document.getElementById("productContainer");
+
+      var section = document.createElement("div");
+      section.className = "productSection";
+      section.innerHTML = `
+        <label>Producto:</label>
+        <input type="text" class="productName" required>
+        <label>Precio:</label>
+        <input type="number" class="productPrice" required><br><br>
+      `;
+      container.appendChild(section);
+    }
+
+    // Manejo del botón "Agregar Más"
+    document.getElementById("addMoreBtn").addEventListener("click", function () {
+      addProductSection();
+    });
+
+    // Manejo del botón "Inyectar"
+    document.getElementById("injectBtn").addEventListener("click", function () {
+      var container = document.getElementById("productContainer");
+      var sections = container.getElementsByClassName("productSection");
+
+      if (sections.length === 0) {
+        alert("Debe agregar al menos un producto.");
+        return;
+      }
+
+      var productos = [];
+      var total = 0;
+
+      // Recorrer todas las secciones y recolectar datos
+      for (var section of sections) {
+        var nombre = section.querySelector(".productName").value;
+        var precio = parseInt(section.querySelector(".productPrice").value);
+
+        if (!nombre || isNaN(precio)) {
+          alert("Todos los productos deben tener nombre y precio válido.");
+          return;
+        }
+
+        productos.push({ Producto: nombre, Precio: precio });
+        total += precio;
+      }
+
+      // Generar ID personalizado del historial
+      var now = new Date();
+      var formattedDate = formatDate(now); // Función para formatear la fecha
+      var formattedTime = formatTime(now); // Función para formatear la hora
+      var customId = `Día ${formattedDate} a las ${formattedTime}`;
+
+      var userRef = db.collection("Usuarios").doc(selectedUid);
+      var supermercadoRef = userRef.collection("Supermercados").doc(selectedSupermarket);
+
+      supermercadoRef.collection("Historiales").doc(customId).set({
+        Fecha: now, // Guardar como Timestamp
+        Productos: productos,
+        Total: total
+      })
+        .then(function () {
+          alert(`Historial guardado correctamente con un total de: ${total}`);
+          container.innerHTML = ""; // Limpiar las secciones
+          addProductSection(); // Agregar una nueva sección vacía
+        })
+        .catch(function (error) {
+          console.error("Error al guardar el historial:", error);
+          alert("Hubo un error al guardar el historial: " + error.message);
+        });
+    });
+
+    // Función para formatear la fecha con ceros iniciales
+    function formatDate(date) {
+      var day = String(date.getDate()).padStart(2, "0");
+      var month = String(date.getMonth() + 1).padStart(2, "0");
+      var year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    }
+
+    // Función para formatear la hora con ceros iniciales
+    function formatTime(date) {
+      var hours = String(date.getHours()).padStart(2, "0");
+      var minutes = String(date.getMinutes()).padStart(2, "0");
+      var seconds = String(date.getSeconds()).padStart(2, "0");
+      return `${hours}:${minutes}:${seconds}`;
+    }
+
+    // Cargar usuarios al inicio
+    loadUsers();
+  </script>
+</body>
+
+</html>
