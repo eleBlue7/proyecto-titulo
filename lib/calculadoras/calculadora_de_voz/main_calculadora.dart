@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'reconocimiento_de_voz.dart';
@@ -33,7 +32,7 @@ class _CalDeVozState extends State<CalDeVoz> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: AvatarGlow(
         animate: isListening,
-        glowColor: const Color(0xFF6D6DFF),
+        glowColor: const Color(0xFF36BFED),
         duration: const Duration(milliseconds: 2000),
         child: GestureDetector(
           onTapDown: (details) async {
@@ -53,7 +52,8 @@ class _CalDeVozState extends State<CalDeVoz> {
                   });
                 } else {
                   setState(() {
-                    text = "No se reconoció un producto válido. Intente nuevamente.";
+                    text =
+                        "No se reconoció un producto válido. Intente nuevamente.";
                   });
                 }
               });
@@ -67,32 +67,47 @@ class _CalDeVozState extends State<CalDeVoz> {
             stopListening();
           },
           child: CircleAvatar(
-            backgroundColor: const Color(0xFF6D6DFF),
+            backgroundColor: const Color(0xFF36BFED),
             radius: 35,
-            child: Icon(isListening ? Icons.mic : Icons.mic_none, color: Colors.white),
+            child: Icon(isListening ? Icons.mic : Icons.mic_none,
+                color: Colors.white),
           ),
         ),
       ),
       appBar: AppBar(
         centerTitle: true,
-        backgroundColor: const Color(0xFF6D6DFF),
+        backgroundColor: const Color(0xFF36BFED),
         elevation: 0.0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back,
+              size: 30.0, //tamaño el icono flecha
+              color: Colors.white),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         title: const Text(
-          "AddUpFast❗🗣️Voz",
+          "Calculadora Voz",
           style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.save, color: Colors.white,),
+            icon: const Icon(
+              Icons.save,
+              color: Color.fromARGB(255, 255, 255, 255),
+              size: 30.0, //tamaño del icono disket
+            ),
             onPressed: () {
               if (products.isNotEmpty) {
-                saveProductsToFirestore(products, widget.supermarket); // Pasamos el supermercado al guardar
+                saveProductsToFirestore(products,
+                    widget.supermarket); // Pasamos el supermercado al guardar
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Historial guardado!')),
                 );
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('No hay productos para guardar')),
+                  const SnackBar(
+                      content: Text('No hay productos para guardar')),
                 );
               }
             },
@@ -106,8 +121,9 @@ class _CalDeVozState extends State<CalDeVoz> {
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Color(0xFF4B0082),
-                    Color.fromARGB(255, 197, 235, 248),
+                    Color(0xFF36BFED), // Picton Blue
+                    Color.fromARGB(255, 250, 250,
+                        250), // Indigo para un efecto de contraste
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -124,7 +140,8 @@ class _CalDeVozState extends State<CalDeVoz> {
           ),
           Center(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,

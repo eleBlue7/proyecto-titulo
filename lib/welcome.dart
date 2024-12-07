@@ -4,101 +4,160 @@ import 'package:supcalculadora/Perfil/perfil.dart';
 import 'package:supcalculadora/calculadoras/calculadora_de_voz/supermercado.dart';
 import 'package:supcalculadora/Configuraciones/configuraciones.dart';
 import 'package:supcalculadora/calculadoras/calculadora_manual/supermercado_manual.dart';
-import 'package:responsive_framework/responsive_framework.dart';
+import 'package:flutter/services.dart';
+import 'package:vibration/vibration.dart';
 
+// Definición de la clase SpeechBubble
+class SpeechBubble extends StatelessWidget {
+  final Widget child;
+
+  const SpeechBubble({required this.child, Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _BubblePainter(),
+      child: Container(
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width *
+              0.8, // 80% del ancho de la pantalla
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: child,
+      ),
+    );
+  }
+}
+
+class _BubblePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.95)
+      ..style = PaintingStyle.fill;
+
+    final bubble = Path()
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(0, 0, size.width, size.height),
+          const Radius.circular(20),
+        ),
+      )
+      // Cola de la burbuja
+      ..moveTo(size.width / 2 - 15, size.height)
+      ..quadraticBezierTo(
+          size.width / 2, size.height + 20, size.width / 2 + 15, size.height)
+      ..close();
+
+    canvas.drawShadow(bubble, Colors.black54, 4, true);
+    canvas.drawPath(bubble, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
+// Definición de la clase Welcome
 class Welcome extends StatefulWidget {
   const Welcome({super.key});
 
   @override
-  _WelcomeState createState() => _WelcomeState();
+  WelcomeState createState() => WelcomeState();
 }
 
-class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
-  int _selectedIndex = 0;
-  String userName = 'Usuario'; // Nombre por defecto
-  int _activeButtonIndex = -1; // Indica cuál icono está siendo presionado
+class WelcomeState extends State<Welcome> with TickerProviderStateMixin {
+  String userName = '';
+  bool isLoadingUserName = true;
+  int _activeButtonIndex = -1;
 
-  late AnimationController
-      _controller; // Controlador de animación para el brillo
-  late AnimationController _fadeController; // Controlador para el parpadeo
-  late Animation<double> _fadeAnimation; // Animación de opacidad
+  bool isBubbleVisible = true; // Estado para controlar la visibilidad del globo
+
+  late AnimationController _bubbleAnimationController;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _fadeAnimation;
+
+  late AnimationController _iconRotationController;
 
   @override
   void initState() {
     super.initState();
-    _loadUserNameFromFirebase(); // Cargar el nombre del usuario desde Firebase
+    _loadUserNameFromFirebase();
 
-    // Inicializamos el controlador de animación para el brillo
-    _controller = AnimationController(
-      duration: const Duration(seconds: 2), // Duración de la animación
-      vsync: this,
-    )..repeat(reverse: false); // Repetir la animación de forma continua
-
-    // Inicializamos el controlador para el parpadeo
-    _fadeController = AnimationController(
-      duration: const Duration(seconds: 3), // Duración total del parpadeo
+    // Inicializar el controlador de animación para el globo
+    _bubbleAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
       vsync: this,
     );
 
-    // Configuramos la animación de opacidad (parpadeo)
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _fadeController,
-        curve: Curves.easeInOut, // Animación suave
-      ),
+    // Definir la animación de deslizamiento para el globo con desplazamiento reducido
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.3), // Desplazamiento reducido hacia abajo
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _bubbleAnimationController,
+      curve: Curves.easeOut,
+    ));
+
+    // Definir la animación de opacidad para el globo
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(_bubbleAnimationController);
+
+    // Inicializar el controlador de animación para el ícono de flecha
+    _iconRotationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
     );
 
-    _fadeController.repeat(reverse: true); // Repetir animación
-    Future.delayed(const Duration(seconds: 9), () {
-      _fadeController.stop(); // Detener la animación después de 9 segundos
-    });
+    // Iniciar las animaciones si el globo es visible
+    if (isBubbleVisible) {
+      _bubbleAnimationController.forward();
+      _iconRotationController.forward();
+    }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
-    _fadeController.dispose();
+    _bubbleAnimationController.dispose();
+    _iconRotationController.dispose();
     super.dispose();
   }
 
-  // Función para cargar el nombre del usuario desde Firebase
-  void _loadUserNameFromFirebase() {
-    User? user =
-        FirebaseAuth.instance.currentUser; // Obtener el usuario autenticado
-    setState(() {
-      if (user != null) {
-        userName = user.displayName ??
-            user.email ??
-            'Usuario'; // Mostrar el nombre o correo
-      }
-    });
-  }
-
-  // Función para manejar la interacción con los íconos de navegación
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    if (_selectedIndex == 0) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const UserProfileScreen(),
-        ),
-      );
-    } else if (_selectedIndex == 1) {
-      _showCalculatorOptions();
-    } else if (_selectedIndex == 2) {
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const Configuraciones(),
-          ));
+  Future<void> _loadUserNameFromFirebase() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      setState(() {
+        if (user != null) {
+          userName = user.displayName ?? user.email?.split('@')[0] ?? 'Usuario';
+        } else {
+          userName = 'Usuario';
+        }
+        isLoadingUserName = false;
+      });
+    } catch (e) {
+      setState(() {
+        userName = 'Usuario';
+        isLoadingUserName = false;
+      });
     }
   }
 
-  // Función para mostrar el modal con las opciones de calculadoras
+  void _onItemTapped(int index) {
+    if (index == 0) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const UserProfileScreen()),
+      );
+    } else if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const Configuraciones()),
+      );
+    }
+  }
+
   void _showCalculatorOptions() {
     showModalBottomSheet(
       context: context,
@@ -107,14 +166,14 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
         return Container(
           height: 250,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.9),
+            color: const Color(0xFF36BFED).withOpacity(0.8),
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(30),
               topRight: Radius.circular(30),
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withOpacity(0.3),
                 offset: const Offset(0, -10),
                 blurRadius: 20,
               ),
@@ -123,30 +182,15 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(10.0),
+              const Padding(
+                padding: EdgeInsets.all(15.0),
                 child: Text(
                   "Seleccione una opción",
                   style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    foreground: Paint()
-                      ..shader = const LinearGradient(
-                        colors: <Color>[
-                          Colors.purple,
-                          Colors.blue,
-                          Colors.green,
-                        ],
-                      ).createShader(
-                        const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0),
-                      ),
-                    shadows: [
-                      Shadow(
-                        offset: const Offset(2, 2),
-                        blurRadius: 4.0,
-                        color: Colors.black.withOpacity(0.25),
-                      ),
-                    ],
+                    fontFamily: 'Montserrat',
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -154,11 +198,7 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildFancyOptionCard(
-                    icon: Icons.mic,
-                    label: "Calculadora de voz",
-                    startColor: Colors.blueAccent,
-                    endColor: Colors.cyanAccent,
+                  GestureDetector(
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -168,12 +208,14 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
                         ),
                       );
                     },
+                    child: _buildCalculatorCard(
+                      icon: Icons.mic,
+                      label: "Calculadora de voz",
+                      startColor: Colors.blueAccent,
+                      endColor: Colors.cyanAccent,
+                    ),
                   ),
-                  _buildFancyOptionCard(
-                    icon: Icons.calculate,
-                    label: "Calculadora manual",
-                    startColor: Colors.orangeAccent,
-                    endColor: Colors.deepOrangeAccent,
+                  GestureDetector(
                     onTap: () {
                       Navigator.pop(context);
                       Navigator.push(
@@ -184,6 +226,12 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
                         ),
                       );
                     },
+                    child: _buildCalculatorCard(
+                      icon: Icons.calculate,
+                      label: "Calculadora manual",
+                      startColor: Colors.orangeAccent,
+                      endColor: Colors.deepOrangeAccent,
+                    ),
                   ),
                 ],
               ),
@@ -194,207 +242,56 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
     );
   }
 
-  // Función para crear tarjetas con gradientes y animación de hover
-  Widget _buildFancyOptionCard({
+  Widget _buildCalculatorCard({
     required IconData icon,
     required String label,
     required Color startColor,
     required Color endColor,
-    required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-        width: 140,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [startColor, endColor],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.15),
-              blurRadius: 8,
-              offset: const Offset(0, 5),
-            ),
-          ],
+    return Container(
+      width: 140,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [startColor, endColor],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.white, size: 50),
-            const SizedBox(height: 10),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true, // Centramos el título en el AppBar
-        title: FadeTransition(
-          opacity: _fadeAnimation, // Aplicar la animación de parpadeo
-          child: Stack(
-            children: [
-              const FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  "Bienvenido a AddUpFast❗",
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              ShaderMask(
-                shaderCallback: (bounds) {
-                  return LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    colors: const [
-                      Colors.transparent,
-                      Colors.white,
-                      Colors.transparent
-                    ],
-                    stops: const [0.0, 0.5, 1.0],
-                    transform: GradientRotation(_controller.value * 2 * 3.1416),
-                  ).createShader(bounds);
-                },
-                child: const Text(
-                  "Bienvenido a AddUpFast❗",
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 146, 217, 255),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage("assets/logo-v2.png"),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 80.0),
-              child: Text(
-                userName,
-                style: const TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  shadows: [
-                    Shadow(
-                      blurRadius: 10.0,
-                      color: Color.fromRGBO(179, 254, 255, 1),
-                      offset: Offset(0, 0),
-                    ),
-                    Shadow(
-                      blurRadius: 20.0,
-                      color: Color.fromARGB(255, 207, 255, 241),
-                      offset: Offset(0, 0),
-                    ),
-                  ],
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.15),
+            blurRadius: 8,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        color: const Color.fromARGB(0, 84, 212, 240),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildMacOSButton(
-              icon: Icons.person,
-              color: Colors.purple.withOpacity(0.8),
-              index: 0,
-              onTap: () => _onItemTapped(0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: Colors.white, size: 50),
+          const SizedBox(height: 10),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
-            _buildMacOSButton(
-              icon: Icons.calculate,
-              color: Colors.blue.withOpacity(0.8),
-              index: 1,
-              onTap: () => _onItemTapped(1),
-            ),
-            _buildMacOSButton(
-              icon: Icons.settings,
-              color: Colors.green.withOpacity(0.8),
-              index: 2,
-              onTap: () => _onItemTapped(2),
-            ),
-          ],
-        ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
 
-  // Función para crear botones estilo macOS con animación de "tap"
-  Widget _buildMacOSButton({
+  Widget _buildShinyIcon({
     required IconData icon,
-    required Color color,
     required int index,
-    required VoidCallback onTap,
+    required double iconSize,
   }) {
+    final bool isActive = _activeButtonIndex == index;
     return GestureDetector(
-      onTap: onTap,
-      child: AnimatedScale(
-        scale: _activeButtonIndex == index ? 2.0 : 1.0,
-        duration: const Duration(milliseconds: 370),
-        child: Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.25),
-                offset: const Offset(5, 5),
-                blurRadius: 10,
-              ),
-            ],
-          ),
-          child: Center(
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: 30,
-            ),
-          ),
-        ),
-      ),
       onTapDown: (_) {
         setState(() {
           _activeButtonIndex = index;
@@ -405,6 +302,216 @@ class _WelcomeState extends State<Welcome> with TickerProviderStateMixin {
           _activeButtonIndex = -1;
         });
       },
+      onTapCancel: () {
+        setState(() {
+          _activeButtonIndex = -1;
+        });
+      },
+      onTap: () => _onItemTapped(index),
+      child: AnimatedScale(
+        scale: isActive ? 1.2 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        child: ShaderMask(
+          shaderCallback: (Rect bounds) {
+            return const LinearGradient(
+              colors: [Colors.white, Color.fromARGB(255, 230, 230, 230)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ).createShader(bounds);
+          },
+          blendMode: BlendMode.srcIn,
+          child: Icon(
+            icon,
+            size: iconSize,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Método personalizado para manejar la vibración con intensidad
+  Future<void> _handleLogoTap() async {
+    // Verifica si el dispositivo soporta vibraciones
+    bool? hasVibrator = await Vibration.hasVibrator();
+    if (hasVibrator != null && hasVibrator) {
+      // Personaliza la vibración aquí:
+      Vibration.vibrate(
+        duration: 200, // Ajusta la duración según tu preferencia
+        amplitude: 128, // Valor entre 1 y 255 (solo en Android API 26+)
+      );
+    }
+
+    // Acción original al tocar el botón
+    _showCalculatorOptions();
+  }
+
+  // Método para alternar la visibilidad del globo con animación
+  void _toggleBubbleVisibility() {
+    setState(() {
+      isBubbleVisible = !isBubbleVisible;
+      if (isBubbleVisible) {
+        _bubbleAnimationController.forward();
+        _iconRotationController.reverse(); // Rotación hacia arriba
+      } else {
+        _bubbleAnimationController.reverse();
+        _iconRotationController.forward(); // Rotación hacia abajo
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Calcula el tamaño de la pantalla para ajustes responsivos
+    double screenHeight = MediaQuery.of(context).size.height;
+
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        toolbarHeight: 0, // Ocultar el AppBar si no es necesario
+      ),
+      body: Stack(
+        children: [
+          // Fondo original con logo cubriendo toda la pantalla
+          Container(
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment.center,
+                radius: 0.5,
+                colors: [
+                  Color.fromARGB(255, 255, 255, 255),
+                  Color(0xFF36BFED), // Azul Picton
+                ],
+              ),
+              image: DecorationImage(
+                image: AssetImage("assets/logo-v2.png"),
+                alignment: Alignment.center,
+                fit: BoxFit.contain,
+              ),
+            ),
+            // Asegurarse de que el fondo cubra toda la pantalla
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          // Botón del logo en el centro con vibración personalizada
+          Center(
+            child: GestureDetector(
+              onTap:
+                  _handleLogoTap, // Utiliza el método personalizado con vibración
+              child: Container(
+                width: 200, // Tamaño original del logo
+                height: 200,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  // Puedes agregar el logo aquí si lo deseas
+                  // image: DecorationImage(
+                  //   image: AssetImage('assets/logo-v2.png'),
+                  //   fit: BoxFit.cover,
+                  // ),
+                ),
+              ),
+            ),
+          ),
+          // Uso de SafeArea solo para los elementos interactivos
+          SafeArea(
+            child: Stack(
+              children: [
+                // Icono de perfil en la esquina superior izquierda
+                Positioned(
+                  top: 10,
+                  left: 10,
+                  child: _buildShinyIcon(
+                    icon: Icons.person,
+                    index: 0,
+                    iconSize: 40,
+                  ),
+                ),
+                // Icono de configuración en la esquina superior derecha
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: _buildShinyIcon(
+                    icon: Icons.settings,
+                    index: 2,
+                    iconSize: 40,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Globo de mensaje y botón de toggle en la parte inferior
+          Positioned(
+            bottom: screenHeight * 0.05, // 5% de la altura de la pantalla
+            left: 0,
+            right: 0,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Globo de mensaje con animación
+                SlideTransition(
+                  position: _slideAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: isLoadingUserName
+                        ? const CircularProgressIndicator(
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          )
+                        : SpeechBubble(
+                            child: Text(
+                              'Bienvenido a AddUpFast! $userName.\nPara usar la aplicación, haz un tap en el centro de la pantalla.',
+                              style: const TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 16, // Tamaño de fuente reducido
+                                fontWeight: FontWeight.w500,
+                                color: Color.fromARGB(255, 13, 19, 49),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                // Botón circular para toggle con animación de rotación
+                GestureDetector(
+                  onTap: _toggleBubbleVisibility,
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF36BFED),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: AnimatedBuilder(
+                      animation: _iconRotationController,
+                      builder: (context, child) {
+                        return Transform.rotate(
+                          angle: _iconRotationController.value *
+                              3.1416, // Rotación completa de 180 grados
+                          child: const Icon(
+                            Icons.arrow_upward, // Usar un solo icono y rotarlo
+                            color: Colors.white,
+                            size: 30,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
