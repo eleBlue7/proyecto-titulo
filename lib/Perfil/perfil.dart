@@ -109,15 +109,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Perfil del Usuario", style:TextStyle(fontWeight: FontWeight.w600,color: Colors.white)),
-        backgroundColor: const Color(0xFF36bfed),
+        title: const Text("Perfil del Usuario", style:TextStyle(fontWeight: FontWeight.w600,color: Color.fromARGB(255, 0, 0, 0))),
+        backgroundColor: const Color.fromARGB(255, 255, 255,255),
         actions: [
           // Ícono que al ser presionado mostrará el diálogo
           IconButton(
-            icon: const Icon(Icons.info_outline, color: Colors.white),
+            icon: const Icon(Icons.info_outline, color: Color.fromARGB(255, 0, 0, 0)),
             onPressed: _showVersionDialog, // Llama al método que muestra el diálogo
           ),
+          
         ],
+        centerTitle: false,
       ),
       body: user != null
           ? Column(

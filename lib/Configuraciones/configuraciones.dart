@@ -164,13 +164,13 @@ class _ConfiguracionesState extends State<Configuraciones> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF36bfed), // Color de la marca
+        backgroundColor: const Color.fromARGB(255, 255, 255,255), // Color de la marca
         title: const Text(
           "Configuraciones",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Color.fromARGB(255, 0, 0, 0), fontWeight: FontWeight.bold),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
-        centerTitle: true,
+        iconTheme: const IconThemeData(color: Color.fromARGB(255, 0, 0, 0)),
+        centerTitle: false,
       ),
       body: Column(
         children: [

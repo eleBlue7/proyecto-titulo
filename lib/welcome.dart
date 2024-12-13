@@ -229,8 +229,8 @@ class WelcomeState extends State<Welcome> with TickerProviderStateMixin {
                     child: _buildCalculatorCard(
                       icon: Icons.calculate,
                       label: "Calculadora manual",
-                      startColor: Colors.orangeAccent,
-                      endColor: Colors.deepOrangeAccent,
+                      startColor: Colors.blueAccent,
+                      endColor: Colors.cyanAccent,
                     ),
                   ),
                 ],

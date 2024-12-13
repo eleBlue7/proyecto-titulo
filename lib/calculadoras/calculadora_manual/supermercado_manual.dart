@@ -130,7 +130,7 @@ class _SupermarketSelectionManualState
           color: Colors.white,
           border: Border.all(
             color: selectedSupermarket == name
-                ? const Color.fromARGB(255, 0, 238, 255)
+                ? const Color.fromARGB(255, 0, 255, 34)
                 : const Color.fromARGB(255, 105, 105, 105),
             width: 2,
           ),
